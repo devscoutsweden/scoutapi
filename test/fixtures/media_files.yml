@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  data: 
+  status: 1
+  mime_type: MyString
+  hash: MyString
+
+two:
+  data: 
+  status: 1
+  mime_type: MyString
+  hash: MyString

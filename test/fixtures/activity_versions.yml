@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  status: 1
+  name: MyString
+  publish: 2014-08-21 23:19:07
+  descr_material: MyString
+  age_min: 1
+  age_max: 1
+  featured: false
+
+two:
+  status: 1
+  name: MyString
+  publish: 2014-08-21 23:19:07
+  descr_material: MyString
+  age_min: 1
+  age_max: 1
+  featured: false
