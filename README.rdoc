@@ -26,3 +26,115 @@ Things you may want to cover:
 
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
+
+== API Usage
+
+You can view all URLs by visiting /api, e.g. http://127.0.0.1:3000/api.
+
+=== Show all categories
+
+Request
+
+  GET "http://127.0.0.1:3000/api/v1/categories"
+  Content-Type: application/json
+
+Response
+
+  [
+    {
+      "id": 1,
+      "group": "Scout Program Track",
+      "name": "Relationships",
+      "status": null,
+      "created_at": "2014-08-23T10:32:54.081Z",
+      "updated_at": "2014-08-23T10:32:54.081Z",
+      "user_id": null
+    },
+    ...
+    {
+      "id": 99,
+      "group": "scout-track",
+      "name": "Ta hand om sin kropp",
+      "status": null,
+      "created_at": "2014-08-23T11:12:11.023Z",
+      "updated_at": "2014-08-23T11:12:11.023Z",
+      "user_id": null
+    }
+  ]
+
+=== Create new category
+
+Request
+
+  POST "/api/v1/categories"
+  Content-Type: application/json
+
+  {
+    "group": "Scout Program Track",
+    "name": "Relationships"
+  }
+
+Response if successful
+
+  Status Code: 201 Created
+
+  {
+    "id": 4,
+    "group": "Scout Program Track",
+    "name": "Relationships",
+    "status": null,
+    "created_at": "2014-08-23T10:32:54.081Z",
+    "updated_at": "2014-08-23T10:32:54.081Z",
+    "user_id": null
+  }
+
+Response if error occurred (example when group and name are not unique)
+
+  Status Code: 422 Unprocessable Entity
+
+  {
+    "error": "The input values conflict with another object. Perhaps the name is already taken?"
+  }
+
+=== Update a category
+
+Request
+
+  PUT "/api/v1/categories"
+  Content-Type: application/json
+
+  {
+    "group": "Scout Program Track",
+    "name": "Relationships"
+  }
+
+Response if successful
+
+  Status Code: 204 No Content
+
+Response if error occurred (example when group and name are not unique)
+
+  Status Code: 422 Unprocessable Entity
+
+  {
+    "error": "The input values conflict with another object. Perhaps the name is already taken?"
+  }
+
+=== Delete a category
+
+Request
+
+  DELETE "/api/v1/categories/1"
+  Content-Type: application/json
+
+Response if successful
+
+  Status Code: 204 No Content
+
+Response if error occurred (example when category does not exist)
+
+  Status Code: 404 Not Found
+
+  {
+    "error": "The requested object does not exist."
+  }
