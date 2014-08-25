@@ -27,9 +27,224 @@ Things you may want to cover:
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
 
+== Versioning of Activities and Comments
+
+The data model is designed to support an unlimited number of revisions/versions
+of each activity. The primary benefit of this is that one version can be
+"published" while another is being "reviewed". Another benefit is that automatic
+data import jobs can add new revisions instead of updating the current revision,
+thus preventing the import job from overwriting manual changes made by users.
+
+Since very few people will be interested in old revisions of activities or
+comments, the default behaviour should be to always return the latest revision
+and nothing else.
+
+Some pieces of data will however not be revision-specific, such as the creator
+of an activity or the activity's comments. By default, the API should present
+an activity as the "non-versioned activity data merged with the most-recent
+versioned data". The user will not be aware that the activity information is
+fetched from multiple tables. It should, however, be possible for a user to
+explicitly retrieve all revisions of an activity or comment.
+
 == API Usage
 
 You can view all URLs by visiting /api, e.g. http://127.0.0.1:3000/api.
+
+=== Search for activities
+
+Show all activities:
+
+  GET http://127.0.0.1:3000/api/v1/activities
+
+Show all activities with "water" in their titles:
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water
+
+Show all activities with "water" in title or one of the description fields:
+
+  GET http://127.0.0.1:3000/api/v1/activities?text=vatten
+
+Show featured (hand-picked by editor) activities with "person" in description:
+
+  GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
+
+Show activities suitable for children no older than 10 years with "water" in the title:
+
+  GET http://127.0.0.1:3000/api/v1/activities?fame=water&age_max=10
+
+Sample response
+
+  [
+    {
+      "id": 1,
+      "rev_id": 1,
+      "name": "Test Activity",
+      "descr_introduction": null,
+      "descr_main": null,
+      "descr_material": null,
+      "descr_notes": null,
+      "descr_prepare": null,
+      "descr_safety": null,
+      "featured": null,
+      ...
+    },
+    ...
+    ,
+       {
+       "id": 6,
+       "rev_id": 6,
+       "name": "Test Activity",
+       "descr_introduction": null,
+       "descr_main": "This is how you do...",
+       "descr_material": "Rope, ...",
+       "descr_notes": "Remember to...",
+       "descr_prepare": "Before you start, ensure that...",
+       "descr_safety": "It is important not to...",
+       ...
+    }
+  ]
+
+=== Create activity
+
+Request
+
+  POST http://127.0.0.1:3000/api/v1/activities HTTP/1.1
+  Content-Type: application/json
+  {
+     "name": "Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     "age_max": 25,
+     "age_min": 19,
+     "participants_max": 10,
+     "participants_min": 5,
+     "time_max": 60,
+     "time_min": 30,
+     "categories": [],
+     "references": []
+  }
+
+Response if successful
+
+  HTTP/1.1 201 Created
+  {
+     "id": 11,
+     "rev_id": 12,
+     "name": "Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     ...
+  }
+
+Response in case of error
+
+  HTTP/1.1 404 Not Found
+  {
+    "error": "The requested object does not exist."
+  }
+
+
+=== Read/Show activity
+
+Request to show the most-recent version of activity 11:
+
+  GET http://127.0.0.1:3000/api/v1/activities/11
+
+Response if successful:
+
+  HTTP/1.1 200 OK
+  {
+    "id": 11,
+    "rev_id": 13,
+    "name": "Updated Test Activity",
+    "descr_introduction": null,
+    "descr_main": "This is how you do...",
+    "descr_material": "Rope, ...",
+    "descr_notes": "Remember to...",
+    "descr_prepare": "Before you start, ensure that...",
+    "descr_safety": "It is important not to...",
+    ...
+  }
+
+Request to show all revisions of activity 11, not just the latest:
+
+  GET http://127.0.0.1:3000/api/v1/activities/11?all_versions=true
+
+Response:
+
+  [
+     {
+        "id": 11,
+        "rev_id": 12,
+        "name": "Test Activity",
+        "descr_introduction": null,
+        "descr_main": "This is how you do...",
+        "descr_material": "Rope, ...",
+        "descr_notes": "Remember to...",
+        "descr_prepare": "Before you start, ensure that...",
+        "descr_safety": "It is important not to...",
+        ...
+     },
+        {
+        "id": 11,
+        "rev_id": 13,
+        "name": "Updated Test Activity",
+        "descr_introduction": null,
+        "descr_main": "This is how you do...",
+        "descr_material": "Rope, ...",
+        "descr_notes": "Remember to...",
+        "descr_prepare": "Before you start, ensure that...",
+        "descr_safety": "It is important not to...",
+        ...
+     }
+  ]
+
+=== Update activity
+
+Request to update activity 11 with new information (will be saved as new revision of activity):
+
+  PUT http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Content-Type: application/json
+  {
+     "name": "Updated Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     "age_max": 25,
+     "age_min": 19,
+     "participants_max": 10,
+     "participants_min": 5,
+     "time_max": 60,
+     "time_min": 30,
+     "categories": [],
+     "references": []
+  }
+
+Response:
+
+  HTTP/1.1 204 No Content
+
+=== Delete activity
+
+Request to delete activity 11 (all revisions of it):
+
+  DELETE http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Content-Type: application/json
+
+Response:
+
+  HTTP/1.1 204 No Content
 
 === Show all categories
 

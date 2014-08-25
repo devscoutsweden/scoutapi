@@ -2,6 +2,7 @@ Scoutapi::Application.routes.draw do
   namespace :api, defaults: {format: 'json'} do
     namespace :v1 do
       resources :categories, only: [:index, :show, :create, :update, :destroy]
+      resources :activities, only: [:index, :show, :create, :update, :destroy]
     end
   end
   # The priority is based upon order of creation: first created -> highest priority.
