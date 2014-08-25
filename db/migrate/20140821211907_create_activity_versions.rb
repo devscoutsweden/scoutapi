@@ -24,7 +24,7 @@ class CreateActivityVersions < ActiveRecord::Migration
     add_reference :activity_versions, :activity, index: true
     add_reference :activity_versions, :user, index: true
 
-    create_join_table :activity_version, :media_file do |t|
+    create_join_table :activity_versions, :media_files do |t|
       t.boolean :featured
 
       t.index :activity_version_id

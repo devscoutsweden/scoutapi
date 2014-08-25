@@ -6,7 +6,7 @@ class CreateReferences < ActiveRecord::Migration
 
       t.timestamps
     end
-    create_join_table :activity_version, :reference do |t|
+    create_join_table :activity_versions, :references do |t|
       t.index :activity_version_id
       t.index :reference_id
       #t.index [:activity_version_id, :reference_id], :name => 'activity_version_reference_join_index'

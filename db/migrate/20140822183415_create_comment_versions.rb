@@ -10,7 +10,7 @@ class CreateCommentVersions < ActiveRecord::Migration
 
     add_reference :comment_versions, :comment, index: true
 
-    create_join_table :comment_version, :media_file do |t|
+    create_join_table :comment_versions, :media_files do |t|
       t.index :comment_version_id
       t.index :media_file_id
       #t.index [:comment_version_id, :media_file_id], :name => 'comment_version_media_file_join_index1'

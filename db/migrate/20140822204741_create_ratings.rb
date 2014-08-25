@@ -1,6 +1,6 @@
 class CreateRatings < ActiveRecord::Migration
   def change
-    create_join_table :activity, :user, table_name: :ratings do |t|
+    create_join_table :activities, :users, table_name: :ratings do |t|
       t.integer :rating
       t.text :source_uri
 
