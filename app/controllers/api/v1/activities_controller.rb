@@ -69,7 +69,7 @@ module Api
 
       def create
         @activity = Activity.new(status: Db::ActivityVersionStatus::PUBLISHED)
-        if @activity.save
+        if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
           version.activity = @activity
           version.status = Db::ActivityVersionStatus::PUBLISHED
@@ -97,7 +97,7 @@ module Api
 
         new_version.activity = @activity
 
-        if new_version.save
+        if new_version.save!
           version_to_replace.save!
           head :no_content
         else
