@@ -1,4 +1,4 @@
-class ActivityVersion < ActiveRecord::Migration
+class SetColumnConstraintsOnActivityVersion < ActiveRecord::Migration
   def up
     change_column :activity_versions, :name, :string, :limit => 100
     change_column :activity_versions, :descr_material, :string, :limit => 10000
