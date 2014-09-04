@@ -9,8 +9,7 @@ module Api
         query_conditions = get_find_condition_params
 
         q = ActivityVersion.
-          where("status = ?", Db::ActivityVersionStatus::PUBLISHED).
-          includes(:activity, :references, :categories)
+          where("status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
           q = q.where(featured: query_conditions[:featured] == "true")
@@ -59,6 +58,24 @@ module Api
                       "%#{query_conditions[:text]}%")
         end
 
+        if query_conditions.has_key?("random")
+          # Searching for random activities requires one additional SQL query,
+          # compared to returning all activites matching the given conditions.
+          # The first query performs the filtering but only returns the primary
+          # key values for the matching activities. The second query, which
+          # returns the actual activity data, then uses randomly selected values
+          # returned from the first query to identify which records to return.
+
+          # Perform search and return the ids of all matching activities. Then
+          # select N random values from this list of primary keys. The stress on
+          # the database is lessened by only having to return the ids.
+          q = q.pluck(:id).sample(query_conditions["random"].to_i)
+
+          # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
+          q = ActivityVersion.includes(:activity, :references, :categories).find(q);
+        else
+          q = q.includes(:activity, :references, :categories)
+        end
         @activityVersions = q;
       end
 
@@ -137,7 +154,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured, :text)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured, :text, :random)
       end
     end
   end
