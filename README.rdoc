@@ -70,7 +70,13 @@ Show featured (hand-picked by editor) activities with "person" in description:
 
 Show activities suitable for children no older than 10 years with "water" in the title:
 
-  GET http://127.0.0.1:3000/api/v1/activities?fame=water&age_max=10
+  GET http://127.0.0.1:3000/api/v1/activities?name=water&age_max=10
+
+Limit result to a number of random activities matching the conditions (this
+example will return five random activites with the word "water" in the title):
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
+
 
 Sample response
 
