@@ -14,8 +14,8 @@ class ActivityVersion < ActiveRecord::Base
   validates :time_max, numericality: { only_integer: true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 10080} # 10080 minutes = 7 days
   belongs_to :activity
   belongs_to :user
-  has_and_belongs_to_many :references
-  has_and_belongs_to_many :categories
+  has_and_belongs_to_many :references, :autosave => true
+  has_and_belongs_to_many :categories, :autosave => true
   has_many :activity_version_medias
   #has_many :medias, through => :activity_version_medias
 end

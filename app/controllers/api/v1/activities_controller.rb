@@ -90,6 +90,15 @@ module Api
           version = ActivityVersion.new(get_activity_version_params)
           version.activity = @activity
           version.status = Db::ActivityVersionStatus::PUBLISHED
+
+          if !params[:categories].nil? && !params[:categories].empty?
+            version.categories << Category.find(params[:categories])
+          end
+
+          if !params[:references].nil? && !params[:references].empty?
+            version.references << Reference.find(params[:references])
+          end
+
           version.save!
           respond_with :api, :v1, @activity, status: :created
         else
@@ -112,6 +121,14 @@ module Api
           version_to_replace.status = Db::ActivityVersionStatus::PREVIOUSLY_PUBLISHED
         end
 
+        if !params[:categories].nil? && !params[:categories].empty?
+          new_version.categories << Category.find(params[:categories])
+        end
+
+        if !params[:references].nil? && !params[:references].empty?
+          new_version.references << Reference.find(params[:references])
+        end
+
         new_version.activity = @activity
 
         if new_version.save!
@@ -123,6 +140,10 @@ module Api
       end
 
       def destroy
+        @activity.activity_versions.each { |v|
+          v.categories.clear
+          v.references.clear
+        }
         if @activity.destroy
           head :no_content
         else
