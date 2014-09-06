@@ -124,9 +124,13 @@ Request
      "participants_min": 5,
      "time_max": 60,
      "time_min": 30,
-     "categories": [],
-     "references": []
+     "categories": [1, 2, 3],
+     "references": [123, 456]
   }
+
+The activity's categories/references are specified as arrays of id numbers. This
+also means that the categories/references must have been created prior to
+updating the activity.
 
 Response if successful
 
@@ -227,9 +231,13 @@ Request to update activity 11 with new information (will be saved as new revisio
      "participants_min": 5,
      "time_max": 60,
      "time_min": 30,
-     "categories": [],
-     "references": []
+     "categories": [1, 2, 3],
+     "references": [123, 456]
   }
+
+The activity's categories/references are specified as arrays of id numbers. This
+also means that the categories/references must have been created prior to
+updating the activity.
 
 Response:
 
