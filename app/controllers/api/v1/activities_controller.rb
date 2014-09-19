@@ -9,7 +9,7 @@ module Api
         query_conditions = get_find_condition_params
 
         q = ActivityVersion.
-          where("status = ?", Db::ActivityVersionStatus::PUBLISHED)
+          where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
           q = q.where(featured: query_conditions[:featured] == "true")
@@ -34,6 +34,9 @@ module Api
         end
         if query_conditions.has_key?("name")
           q = q.where("name LIKE ?", "%#{query_conditions[:name]}%")
+        end
+        if params.has_key?("categories")
+          q = q.where(:categories => { :id => params[:categories]})
         end
         if query_conditions.has_key?("text")
           q = q.where("name LIKE ? "+
@@ -175,7 +178,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured, :text, :random)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured, :text, :random, :categories)
       end
     end
   end
