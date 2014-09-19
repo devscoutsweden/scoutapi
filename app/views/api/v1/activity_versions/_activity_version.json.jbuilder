@@ -1,5 +1,5 @@
 json.id activity_version.activity.id
-json.rev_id activity_version.id
+json.revision_id activity_version.id
 json.extract! activity_version,
               :name,
               :descr_introduction,
