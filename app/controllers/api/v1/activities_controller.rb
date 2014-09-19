@@ -36,7 +36,7 @@ module Api
           q = q.where("name LIKE ?", "%#{query_conditions[:name]}%")
         end
         if params.has_key?("categories")
-          q = q.where(:categories => { :id => params[:categories]})
+          q = q.joins(:categories).where(categories: { id: params[:categories]})
         end
         if query_conditions.has_key?("text")
           q = q.where("name LIKE ? "+
