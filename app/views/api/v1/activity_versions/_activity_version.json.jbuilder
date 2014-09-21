@@ -16,7 +16,8 @@ json.extract! activity_version,
               :time_max,
               :time_min,
               :published_at,
-              :status
+              :status,
+              :created_at
 
 json.categories activity_version.categories, :id, :group, :name
 json.references activity_version.references, :id, :type, :uri
