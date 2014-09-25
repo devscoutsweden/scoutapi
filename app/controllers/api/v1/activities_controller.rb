@@ -102,6 +102,10 @@ module Api
             version.references << Reference.find(params[:references])
           end
 
+          if !params[:media_files].nil? && !params[:media_files].empty?
+            version.media_files << MediaFile.find(params[:media_files])
+          end
+
           version.save!
           respond_with :api, :v1, @activity, status: :created
         else
@@ -130,6 +134,10 @@ module Api
 
         if !params[:references].nil? && !params[:references].empty?
           new_version.references << Reference.find(params[:references])
+        end
+
+        if !params[:media_files].nil? && !params[:media_files].empty?
+          new_version.media_files << MediaFile.find(params[:media_files])
         end
 
         new_version.activity = @activity

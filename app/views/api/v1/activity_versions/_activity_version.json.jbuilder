@@ -19,4 +19,5 @@ json.extract! activity_version,
               :status
 
 json.categories activity_version.categories, :id, :group, :name
-json.references activity_version.references, :id, :type, :uri
+json.references activity_version.references, :id, :description, :uri
+json.media_files activity_version.media_files, :id, :mime_type, :data, :uri, :status
