@@ -8,7 +8,20 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :null_session
 
+  protected
+
+  def restrict_access_to_api_users
+    authenticate_or_request_with_http_token do |token, options|
+      @userApiKey = UserApiKey.find_by_key(token)
+      #@userApiKey = UserApiKey.joins(:user).find_by_key(token)
+    end
+  end
+
   private
+
+  def error_forbidden(error)
+    render_error error, 'Access to this URL is denied', :forbidden
+  end
 
   def error_record_not_unique(error)
     render_error error, 'The input values conflict with another object. Perhaps the name is already taken?', :unprocessable_entity

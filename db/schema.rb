@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140829175509) do
+ActiveRecord::Schema.define(version: 20140927123626) do
 
   create_table "activities", force: true do |t|
     t.integer  "status"
@@ -152,6 +152,16 @@ ActiveRecord::Schema.define(version: 20140829175509) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "user_api_keys", force: true do |t|
+    t.string   "key"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "user_id"
+  end
+
+  add_index "user_api_keys", ["key"], name: "index_user_api_keys_on_key", unique: true
+  add_index "user_api_keys", ["user_id"], name: "index_user_api_keys_on_user_id"
 
   create_table "user_identities", force: true do |t|
     t.string   "type"

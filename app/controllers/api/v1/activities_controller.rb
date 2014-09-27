@@ -3,6 +3,7 @@ module Api
   module V1
     include Db
     class ActivitiesController < ApplicationController
+      before_filter :restrict_access_to_api_users
       before_action :set_activity, only: [:show, :update, :destroy]
 
       def index
@@ -36,6 +37,7 @@ module Api
           q = q.where("name LIKE ?", "%#{query_conditions[:name]}%")
         end
         if params.has_key?("categories")
+          # The "joins" may not be necessary. The below "includes" may be necessary.
           q = q.joins(:categories).where(categories: { id: params[:categories]})
         end
         if query_conditions.has_key?("text")

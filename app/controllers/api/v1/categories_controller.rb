@@ -1,6 +1,7 @@
 module Api
   module V1
     class CategoriesController < ApplicationController
+      before_filter :restrict_access_to_api_users
       before_action :set_category, only: [:show, :update, :destroy]
 
       def index

@@ -50,32 +50,65 @@ explicitly retrieve all revisions of an activity or comment.
 
 You can view all URLs by visiting /api, e.g. http://127.0.0.1:3000/api.
 
+=== API Keys and User Credentials
+
+Almost all parts of the API is protected from unauthorized access by means of
+API keys. Each API request must have an API key specified in the Authorization
+http header:
+
+    Authorization: Token token="4d7a9ae16d0092c35f63"
+
+API keys allow the system to keep track of client interactions, including
+auditing and permissions. Acquiring an API key is very simple: Just create a new
+user account by sending a POST request to the /api/v1/users URL. This will
+create an anonymous user and the server response will include the API key for
+the newly created user. The client must remember to store the returned API key
+as there is (currently) no way of retrieving it later on.
+
+A sample request for creating a new user is found further down this document.
+
+The server will response with this error message if a token has not been
+specified, or if it is incorrect:
+
+    HTTP/1.1 401 Unauthorized
+    WWW-Authenticate: Token realm="Application"
+    Content-Type: text/html; charset=utf-8
+
+    HTTP Token: Access denied.
+
+
 === Search for activities
 
 Show all activities:
 
   GET http://127.0.0.1:3000/api/v1/activities
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show all activities with "water" in their titles:
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show all activities with "water" in title or one of the description fields:
 
   GET http://127.0.0.1:3000/api/v1/activities?text=vatten
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show featured (hand-picked by editor) activities with "person" in description:
 
   GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show activities suitable for children no older than 10 years with "water" in the title:
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&age_max=10
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 
 Sample response
@@ -115,6 +148,7 @@ Sample response
 Request
 
   POST http://127.0.0.1:3000/api/v1/activities HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
   {
      "name": "Test Activity",
@@ -167,6 +201,7 @@ Response in case of error
 Request to show the most-recent version of activity 11:
 
   GET http://127.0.0.1:3000/api/v1/activities/11
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Response if successful:
 
@@ -187,6 +222,7 @@ Response if successful:
 Request to show all revisions of activity 11, not just the latest:
 
   GET http://127.0.0.1:3000/api/v1/activities/11?all_versions=true
+  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Response:
 
@@ -222,6 +258,7 @@ Response:
 Request to update activity 11 with new information (will be saved as new revision of activity):
 
   PUT http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
   {
      "name": "Updated Test Activity",
@@ -254,6 +291,7 @@ Response:
 Request to delete activity 11 (all revisions of it):
 
   DELETE http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
 Response:
@@ -265,6 +303,7 @@ Response:
 Request
 
   GET "http://127.0.0.1:3000/api/v1/categories"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
 Response
@@ -296,6 +335,7 @@ Response
 Request
 
   POST "/api/v1/categories"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
   {
@@ -330,6 +370,7 @@ Response if error occurred (example when group and name are not unique)
 Request
 
   PUT "/api/v1/categories"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
   {
@@ -354,6 +395,7 @@ Response if error occurred (example when group and name are not unique)
 Request
 
   DELETE "/api/v1/categories/1"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
 Response if successful
@@ -367,3 +409,70 @@ Response if error occurred (example when category does not exist)
   {
     "error": "The requested object does not exist."
   }
+
+=== Create user with API key
+
+Request
+
+    POST http://127.0.0.1:3000/api/v1/users HTTP/1.1
+    Authorization: Token token="4d7a9ae16d0092c35f63"
+    Content-Type: application/json
+    {
+    	"email": "USER@HOST",
+    	"display_name": "Alice"
+    }
+
+Response if successful:
+
+    HTTP/1.1 201 Created
+    Content-Type: application/json; charset=utf-8
+
+    {
+        "api_key":"4d7a9ae16d0092c35f63"
+    }
+
+Response if error occurred (example when e-mail address is not unique)
+
+  Status Code: 422 Unprocessable Entity
+
+  {
+    "error": "The input values conflict with another object. Perhaps the name is already taken?"
+  }
+
+=== Show current user's profile
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/users/profile HTTP/1.1
+    Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Response
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+    {
+        "email": "USER@HOST",
+        "display_name": "Alice"
+        "created_at": "2014-09-27T13:50:55.203Z",
+        "keys": [{"key": "4d7a9ae16d0092c35f63"}]
+    }
+
+=== Show all users and their API keys (only in development mode)
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/all_api_keys HTTP/1.1
+
+Response (only when server is in development mode)
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+
+    [
+       {
+            "email": "USER@HOST",
+            "display_name": "Alice"
+            "keys": [{"key": "4d7a9ae16d0092c35f63"}]
+       },
+       ...
+    ]
