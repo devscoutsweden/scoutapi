@@ -3,6 +3,8 @@ Scoutapi::Application.routes.draw do
     namespace :v1 do
       resources :categories, only: [:index, :show, :create, :update, :destroy]
       resources :activities, only: [:index, :show, :create, :update, :destroy]
+      resources :references, only: [:index, :show, :create, :update, :destroy]
+      resources :media_files, only: [:index, :show, :create, :update, :destroy]
       post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
       get 'all_api_keys', to: 'users#all_api_keys'

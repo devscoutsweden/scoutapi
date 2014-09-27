@@ -16,6 +16,5 @@ class ActivityVersion < ActiveRecord::Base
   belongs_to :user
   has_and_belongs_to_many :references, :autosave => true
   has_and_belongs_to_many :categories, :autosave => true
-  has_many :activity_version_medias
-  #has_many :medias, through => :activity_version_medias
+  has_and_belongs_to_many :media_files, :autosave => true
 end
