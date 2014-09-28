@@ -1,4 +1,6 @@
 class Activity < ActiveRecord::Base
+  validates :user, presence: true
+
   belongs_to :user
   has_many :activity_versions, :dependent => :delete_all
   has_many :ratings, :dependent => :delete_all

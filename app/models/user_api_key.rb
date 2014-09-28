@@ -1,4 +1,6 @@
 class UserApiKey < ActiveRecord::Base
+  validates :user, presence: true
+
   belongs_to :user
 
   before_create :generate_key

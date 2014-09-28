@@ -1,4 +1,6 @@
 class ActivityVersion < ActiveRecord::Base
+  validates :activity, :user, presence: true
+
   validates :descr_material, length: {maximum: 10000}
   validates :descr_introduction, length: {maximum: 10000}
   validates :descr_main, length: {maximum: 10000}

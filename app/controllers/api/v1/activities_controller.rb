@@ -91,8 +91,10 @@ module Api
 
       def create
         @activity = Activity.new(status: Db::ActivityVersionStatus::PUBLISHED)
+        @activity.user = @userApiKey.user
         if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
+          version.user = @userApiKey.user
           version.activity = @activity
           version.status = Db::ActivityVersionStatus::PUBLISHED
 
@@ -122,6 +124,7 @@ module Api
         # Set status of current revision to PREVIOUSLY_PUBLISHED if it is PUBLISHED
 
         new_version = ActivityVersion.new(get_activity_version_params)
+        new_version.user = @userApiKey.user
         new_version.status = @activity.activity_versions.last.status
 
         version_to_replace = @activity.activity_versions.last
