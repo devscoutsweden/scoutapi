@@ -1,5 +1,9 @@
 class ActivityVersion < ActiveRecord::Base
-  validates :activity, :user, presence: true
+  # Do not validate that each activity version has a user. Reason: some existing
+  # versions were created before user_id was automatically assigned based on
+  # the API key used when creating the activity version.
+
+  #validates :activity, :user, presence: true
 
   validates :descr_material, length: {maximum: 10000}
   validates :descr_introduction, length: {maximum: 10000}

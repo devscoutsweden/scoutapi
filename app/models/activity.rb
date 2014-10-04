@@ -1,5 +1,9 @@
 class Activity < ActiveRecord::Base
-  validates :user, presence: true
+  # Do not validate that each activity is owned by a user. Reason: some existing
+  # activities were created before user_id was automatically assigned based on
+  # the API key used when creating the activity.
+
+  #validates :user, presence: true
 
   belongs_to :user
   has_many :activity_versions, :dependent => :delete_all
