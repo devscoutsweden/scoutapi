@@ -38,7 +38,7 @@ module Api
         end
         if params.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
-          q = q.joins(:categories).where(categories: { id: params[:categories]})
+          q = q.joins(:categories).where(categories: { id: params[:categories] })
         end
         if query_conditions.has_key?("text")
           q = q.where("name LIKE ? "+
@@ -77,9 +77,9 @@ module Api
           q = q.pluck(:id).sample(query_conditions["random"].to_i)
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = ActivityVersion.includes(:activity, :references, :categories).find(q);
+          q = ActivityVersion.includes(:activity, :references, :categories).order(:activity_id, :id).find(q);
         else
-          q = q.includes(:activity, :references, :categories)
+          q = q.includes(:activity, :references, :categories).order(:activity_id, :id)
         end
         @activityVersions = q;
       end
@@ -125,9 +125,10 @@ module Api
 
         new_version = ActivityVersion.new(get_activity_version_params)
         new_version.user = @userApiKey.user
-        new_version.status = @activity.activity_versions.last.status
 
-        version_to_replace = @activity.activity_versions.last
+        version_to_replace = @activity.activity_versions.order(:id).last
+
+        new_version.status = version_to_replace.status
 
         if version_to_replace.status == Db::ActivityVersionStatus::PUBLISHED
           version_to_replace.status = Db::ActivityVersionStatus::PREVIOUSLY_PUBLISHED
@@ -172,6 +173,7 @@ module Api
       def find_activity(id)
         Activity.
           #joins(:activity_versions).
+          #order("activities.id, activity_versions.id DESC").
           #where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).
           #includes(:activity_versions, activity_versions: [:references, :categories]).
           find(id)
@@ -179,6 +181,7 @@ module Api
 
       def set_activity
         @activity = find_activity(params[:id])
+        #@activity.activity_versions.sort! { |a,b| a.id < b.id }
       end
 
       #def validated_params
