@@ -3,6 +3,6 @@ json.activity_id activity.id
 #              :id,
 #              :status
 
-json.array! activity.activity_versions do |activity_version|
+json.array! activity.activity_versions.order(:id) do |activity_version|
   json.partial! activity_version
 end

@@ -131,7 +131,14 @@ module Api
         new_version.status = version_to_replace.status
 
         if version_to_replace.status == Db::ActivityVersionStatus::PUBLISHED
-          version_to_replace.status = Db::ActivityVersionStatus::PREVIOUSLY_PUBLISHED
+          # It has happened that multiple versions of a single activity have had
+          # PUBLISHED status at the same time. This screws up some queries and
+          # must be avoided. Explicitly setting the status for all versions,
+          # instead of merely the last one, ensures that this situation will
+          # never occur (again).
+
+          ActivityVersion.where(:activity => @activity, :status => Db::ActivityVersionStatus::PUBLISHED).update_all(:status => Db::ActivityVersionStatus::PREVIOUSLY_PUBLISHED)
+          #version_to_replace.status = Db::ActivityVersionStatus::PREVIOUSLY_PUBLISHED
         end
 
         if !params[:categories].nil? && !params[:categories].empty?
