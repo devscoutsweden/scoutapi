@@ -11,6 +11,7 @@ module Api
 
       def create
         @category = Category.new(validated_params)
+        @category.user = @userApiKey.user
         if @category.save
           respond_with :api, :v1, @category, status: :created
         else
