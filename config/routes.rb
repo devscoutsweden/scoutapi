@@ -8,6 +8,8 @@ Scoutapi::Application.routes.draw do
       post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
       get 'all_api_keys', to: 'users#all_api_keys'
+      get 'favourites', to: 'favourites#index'
+      put 'favourites', to: 'favourites#update'
     end
   end
   # The priority is based upon order of creation: first created -> highest priority.

@@ -1,5 +1,9 @@
 json.id activity_version.activity.id
 json.revision_id activity_version.id
+
+# Number of users who have marked the activity as a favourite
+json.favourite_count @favouritesCount[activity_version.activity.id].nil? ? 0 : @favouritesCount[activity_version.activity.id]
+
 json.extract! activity_version,
               :name,
               :descr_introduction,

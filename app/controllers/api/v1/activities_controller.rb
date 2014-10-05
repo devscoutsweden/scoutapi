@@ -16,44 +16,44 @@ module Api
           q = q.where(featured: query_conditions[:featured] == "true")
         end
         if query_conditions.has_key?("age_min")
-          q = q.where("age_min >= ?", query_conditions[:age_min].to_i)
+          q = q.where("activity_versions.age_min >= ?", query_conditions[:age_min].to_i)
         end
         if query_conditions.has_key?("age_max")
-          q = q.where("age_max <= ?", query_conditions[:age_max].to_i)
+          q = q.where("activity_versions.age_max <= ?", query_conditions[:age_max].to_i)
         end
         if query_conditions.has_key?("participants_min")
-          q = q.where("participants_min >= ?", query_conditions[:participants_min].to_i)
+          q = q.where("activity_versions.participants_min >= ?", query_conditions[:participants_min].to_i)
         end
         if query_conditions.has_key?("participants_max")
-          q = q.where("participants_max <= ?", query_conditions[:participants_max].to_i)
+          q = q.where("activity_versions.participants_max <= ?", query_conditions[:participants_max].to_i)
         end
         if query_conditions.has_key?("time_min")
-          q = q.where("time_min >= ?", query_conditions[:time_min].to_i)
+          q = q.where("activity_versions.time_min >= ?", query_conditions[:time_min].to_i)
         end
         if query_conditions.has_key?("time_max")
-          q = q.where("time_max <= ?", query_conditions[:time_max].to_i)
+          q = q.where("activity_versions.time_max <= ?", query_conditions[:time_max].to_i)
         end
         if query_conditions.has_key?("name")
-          q = q.where("name LIKE ?", "%#{query_conditions[:name]}%")
+          q = q.where("activity_versions.name LIKE ?", "%#{query_conditions[:name]}%")
         end
         if params.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
           q = q.joins(:categories).where(categories: { id: params[:categories] })
         end
         if query_conditions.has_key?("text")
-          q = q.where("name LIKE ? "+
+          q = q.where("activity_versions.name LIKE ? "+
                         "OR " +
-                        "descr_introduction LIKE ? "+
+                        "activity_versions.descr_introduction LIKE ? "+
                         "OR " +
-                        "descr_main LIKE ? "+
+                        "activity_versions.descr_main LIKE ? "+
                         "OR " +
-                        "descr_material LIKE ? "+
+                        "activity_versions.descr_material LIKE ? "+
                         "OR " +
-                        "descr_notes LIKE ? "+
+                        "activity_versions.descr_notes LIKE ? "+
                         "OR " +
-                        "descr_prepare LIKE ? "+
+                        "activity_versions.descr_prepare LIKE ? "+
                         "OR " +
-                        "descr_safety LIKE ?",
+                        "activity_versions.descr_safety LIKE ?",
                       "%#{query_conditions[:text]}%",
                       "%#{query_conditions[:text]}%",
                       "%#{query_conditions[:text]}%",
@@ -77,11 +77,26 @@ module Api
           q = q.pluck(:id).sample(query_conditions["random"].to_i)
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = ActivityVersion.includes(:activity, :references, :categories).order(:activity_id, :id).find(q);
+          q = ActivityVersion.includes(:activity, :references, :categories, :media_files).order(:activity_id, :id).find(q);
         else
-          q = q.includes(:activity, :references, :categories).order(:activity_id, :id)
+          q = q.includes(:activity, :references, :categories, :media_files).order(:activity_id, :id)
         end
         @activityVersions = q;
+
+        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
+        @favouritesCount = FavouriteActivity.
+          where(:activity_id => get_activity_ids(@activityVersions)).
+          group(:activity_id).
+          count(:user_id)
+      end
+
+      # Extracts the activity ids from the activity versions supplied
+      def get_activity_ids(activity_versions)
+        ids = Array.new
+        activity_versions.each do |a|
+          ids << a.activity_id
+        end
+        ids
       end
 
       def show

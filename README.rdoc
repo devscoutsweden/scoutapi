@@ -27,6 +27,46 @@ Things you may want to cover:
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
 
+== Working with Heroku
+
+Pushing to Heroku
+
+    $ git push --progress heroku dev:master
+
+    Fetching repository, done.
+    Counting objects: 128, done.
+    Delta compression using up to 2 threads.
+    Compressing objects: 100% (83/83), done.
+    Writing objects: 100% (90/90), 11.35 KiB | 0 bytes/s, done.
+    Total 90 (delta 46), reused 0 (delta 0)
+    -----> Ruby app detected
+    -----> Compiling Ruby/Rails
+    ...
+    -----> Launching... done, v16
+           http://infinite-forest-4832.herokuapp.com/ deployed to Heroku
+    To git@heroku.com:infinite-forest-4832.git
+       ddb6edc..e7b744c  dev -> master
+
+Migrating database
+
+    $ heroku run exec rake db:migrate
+
+    Running `exec rake db:migrate` attached to terminal... up, run.5847
+    ...
+    Migrating to CreateUserApiKeys (20140927123626)
+    == 20140927123626 CreateUserApiKeys: migrating ================================
+    -- create_table(:user_api_keys)
+       -> 0.3339s
+    -- add_reference(:user_api_keys, :user, {:index=>true})
+       -> 0.0143s
+    -- add_index(:user_api_keys, :key, {:unique=>true})
+       -> 0.0084s
+    == 20140927123626 CreateUserApiKeys: migrated (0.3571s) =======================
+
+Checking logs
+
+    $ heroku logs
+
 == Versioning of Activities and Comments
 
 The data model is designed to support an unlimited number of revisions/versions
@@ -476,3 +516,41 @@ Response (only when server is in development mode)
        },
        ...
     ]
+
+=== List current user's favourite activities
+
+This operation returns the user's favoured activities in the form of a list of
+activity identifiers.
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/favourites HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+
+    [13,62,305,...]
+
+=== Set current user's favourite activities
+
+To simplify the API, all the user's favourites are set at once. There is no API
+method for marking/unmarking an individual activity. The operation works by
+first deleting all current favourites and then adding the once specified by the
+request.
+
+Request
+
+    PUT http://127.0.0.1:3000/api/v1/favourites HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+    Content-Type: application/json
+
+    {
+        "id": [13,62,305,...]
+    }
+
+Response
+
+    HTTP/1.1 204 No Content
