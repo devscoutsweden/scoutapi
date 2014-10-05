@@ -11,13 +11,12 @@ module Api
       def update
         user = @userApiKey.user
 
-        if !validated_params.nil?
-          # Start be deleting the user's current favourites...
-          FavouriteActivity.delete_all(:user => @userApiKey.user)
-          if !validated_params.empty?
-            # ...and continue with adding the user's new list of favourites.
-            user.favourites << Activity.find(validated_params)
-          end
+        # Start be deleting the user's current favourites...
+        FavouriteActivity.delete_all(:user => @userApiKey.user)
+
+        if !params[:id].nil? && !params[:id].empty?
+          # ...and continue with adding the user's new list of favourites.
+          user.favourites << Activity.find(params[:id])
         end
 
         if user.save!
@@ -27,12 +26,12 @@ module Api
         end
       end
 
-      private
+      #private
 
-      def validated_params
-        Rails.logger.info("PARAMS: #{params.inspect}")
-        params.require(:id)
-      end
+      #def validated_params
+      #  Rails.logger.info("PARAMS: #{params.inspect}")
+      #  params.require(:id)
+      #end
     end
   end
 end

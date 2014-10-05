@@ -84,8 +84,12 @@ module Api
         @activityVersions = q;
 
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        @favouritesCount = FavouriteActivity.
-          where(:activity_id => get_activity_ids(@activityVersions)).
+        @favouritesCount = get_favourite_count(get_activity_ids(@activityVersions))
+      end
+
+      def get_favourite_count(ids)
+        FavouriteActivity.
+          where(:activity_id => ids).
           group(:activity_id).
           count(:user_id)
       end
@@ -101,6 +105,8 @@ module Api
 
       def show
         @all_versions = params.has_key?('all_versions') && params[:all_versions] == 'true'
+        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
+        @favouritesCount = get_favourite_count(@activity.id)
         respond_with @activity
       end
 
