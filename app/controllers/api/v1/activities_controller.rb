@@ -113,6 +113,10 @@ module Api
       def create
         @activity = Activity.new(status: Db::ActivityVersionStatus::PUBLISHED)
         @activity.user = @userApiKey.user
+
+        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
+        @favouritesCount = get_favourite_count(@activity.id)
+        
         if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
           version.user = @userApiKey.user
