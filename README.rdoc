@@ -27,6 +27,28 @@ Things you may want to cover:
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
 
+== Working with Test Server
+
+0. Log in as devscout on devscout.mikaelsvensson.info using SSH
+
+    devscout@test:~$ cd /home/devscout/rails-apps/scoutapi
+
+1. Get latest source code
+
+    devscout@test:~/rails-apps/scoutapi$ git pull
+
+2. Stop application
+
+    devscout@test:~/rails-apps/scoutapi$ kill -9 $(cat tmp/pids/server.pid)
+
+3. Migrate database
+
+    devscout@test:~/rails-apps/scoutapi$ bin/rake db:migrate
+
+4. Start application
+
+    devscout@test:~/rails-apps/scoutapi$ bin/rails server -p 10081 -d
+
 == Working with Heroku
 
 Pushing to Heroku
