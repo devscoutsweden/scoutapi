@@ -161,17 +161,38 @@ Show featured (hand-picked by editor) activities with "person" in description:
   GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
   Authorization: Token token="4d7a9ae16d0092c35f63"
 
-Show activities suitable for children no older than 10 years with "water" in the title:
-
-  GET http://127.0.0.1:3000/api/v1/activities?name=water&age_max=10
-  Authorization: Token token="4d7a9ae16d0092c35f63"
-
 Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
   Authorization: Token token="4d7a9ae16d0092c35f63"
 
+Show "water" activities suitable for 10-year-old children:
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water&age_1=10
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Searching for activities suitable for people within a certain age range requires
+some explaining. The age_1 and age_2 parameters define an age span which
+must be within the age span of the activity.
+
+This table shows the age range for a number of activities and whether or not
+each activity will be returned/matched given the specified values for different
+values of request parameters age_1 and age_2:
+
+    Activity Information----------------    Request Parameters  Activity Is Returned ---
+    Activity Name        Min Age Max Age
+
+    Tag                        0      10    age_1=2             Yes
+                                            age_1=2  age_2=20   No, since 20 is outside of 0-10 (it does not matter than 2 is within the range).
+                                            age_1=2  age_2=5    Yes
+                                            age_1=12            No, since 12 is outside of 0-10.
+    Cowboys and Indians        5      15    age_1=2             No, since 2 is outside of 5-15.
+                                            age_1=5  age_2=10   Yes
+                                            age_1=10 age_2=20   No, since 20 is outside of 5-15.
+                                            age_1=12            Yes
+    I Have Never...           15      99    age_1=20            Yes
+                                            age_1=100           No, since 100 is outside of 15-99.
 
 Sample response
 

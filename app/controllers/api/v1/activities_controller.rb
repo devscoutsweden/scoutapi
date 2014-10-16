@@ -15,24 +15,34 @@ module Api
         if query_conditions.has_key?("featured")
           q = q.where(featured: query_conditions[:featured] == "true")
         end
-        if query_conditions.has_key?("age_min")
-          q = q.where("activity_versions.age_min >= ?", query_conditions[:age_min].to_i)
+
+        if query_conditions.has_key?("age_1")
+          q = q.where("activity_versions.age_min <= ?", query_conditions[:age_1].to_i)
+          q = q.where("? <= activity_versions.age_max ", query_conditions[:age_1].to_i)
         end
-        if query_conditions.has_key?("age_max")
-          q = q.where("activity_versions.age_max <= ?", query_conditions[:age_max].to_i)
+        if query_conditions.has_key?("age_2")
+          q = q.where("activity_versions.age_min <= ?", query_conditions[:age_2].to_i)
+          q = q.where("? <= activity_versions.age_max", query_conditions[:age_2].to_i)
         end
-        if query_conditions.has_key?("participants_min")
-          q = q.where("activity_versions.participants_min >= ?", query_conditions[:participants_min].to_i)
+
+        if query_conditions.has_key?("participants_1")
+          q = q.where("activity_versions.participants_min <= ?", query_conditions[:participants_1].to_i)
+          q = q.where("? <= activity_versions.participants_max", query_conditions[:participants_1].to_i)
         end
-        if query_conditions.has_key?("participants_max")
-          q = q.where("activity_versions.participants_max <= ?", query_conditions[:participants_max].to_i)
+        if query_conditions.has_key?("participants_2")
+          q = q.where("activity_versions.participants_min <= ?", query_conditions[:participants_2].to_i)
+          q = q.where("? <= activity_versions.participants_max", query_conditions[:participants_2].to_i)
         end
-        if query_conditions.has_key?("time_min")
-          q = q.where("activity_versions.time_min >= ?", query_conditions[:time_min].to_i)
+
+        if query_conditions.has_key?("time_1")
+          q = q.where("activity_versions.time_min <= ?", query_conditions[:time_1].to_i)
+          q = q.where("? <= activity_versions.time_max", query_conditions[:time_1].to_i)
         end
-        if query_conditions.has_key?("time_max")
-          q = q.where("activity_versions.time_max <= ?", query_conditions[:time_max].to_i)
+        if query_conditions.has_key?("time_2")
+          q = q.where("activity_versions.time_min <= ?", query_conditions[:time_2].to_i)
+          q = q.where("? <= activity_versions.time_max", query_conditions[:time_2].to_i)
         end
+
         if query_conditions.has_key?("name")
           q = q.where("activity_versions.name LIKE ?", "%#{query_conditions[:name]}%")
         end
@@ -222,11 +232,11 @@ module Api
       #end
 
       def get_activity_version_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2)
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured, :text, :random, :categories)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :categories)
       end
     end
   end
