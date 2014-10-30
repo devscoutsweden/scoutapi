@@ -232,7 +232,7 @@ module Api
       #end
 
       def get_activity_version_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2)
+	params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max)
       end
 
       def get_find_condition_params
