@@ -11,10 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140927123626) do
-
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+ActiveRecord::Schema.define(version: 20141030160650) do
 
   create_table "activities", force: true do |t|
     t.integer  "status"
@@ -23,7 +20,7 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.integer  "user_id"
   end
 
-  add_index "activities", ["user_id"], name: "index_activities_on_user_id", using: :btree
+  add_index "activities", ["user_id"], name: "index_activities_on_user_id"
 
   create_table "activity_versions", force: true do |t|
     t.integer  "status"
@@ -48,16 +45,16 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.integer  "user_id"
   end
 
-  add_index "activity_versions", ["activity_id"], name: "index_activity_versions_on_activity_id", using: :btree
-  add_index "activity_versions", ["user_id"], name: "index_activity_versions_on_user_id", using: :btree
+  add_index "activity_versions", ["activity_id"], name: "index_activity_versions_on_activity_id"
+  add_index "activity_versions", ["user_id"], name: "index_activity_versions_on_user_id"
 
   create_table "activity_versions_categories", id: false, force: true do |t|
     t.integer "category_id",         null: false
     t.integer "activity_version_id", null: false
   end
 
-  add_index "activity_versions_categories", ["activity_version_id"], name: "index_activity_versions_categories_on_activity_version_id", using: :btree
-  add_index "activity_versions_categories", ["category_id"], name: "index_activity_versions_categories_on_category_id", using: :btree
+  add_index "activity_versions_categories", ["activity_version_id"], name: "index_activity_versions_categories_on_activity_version_id"
+  add_index "activity_versions_categories", ["category_id"], name: "index_activity_versions_categories_on_category_id"
 
   create_table "activity_versions_media_files", id: false, force: true do |t|
     t.integer "activity_version_id", null: false
@@ -65,16 +62,16 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.boolean "featured"
   end
 
-  add_index "activity_versions_media_files", ["activity_version_id"], name: "index_activity_versions_media_files_on_activity_version_id", using: :btree
-  add_index "activity_versions_media_files", ["media_file_id"], name: "index_activity_versions_media_files_on_media_file_id", using: :btree
+  add_index "activity_versions_media_files", ["activity_version_id"], name: "index_activity_versions_media_files_on_activity_version_id"
+  add_index "activity_versions_media_files", ["media_file_id"], name: "index_activity_versions_media_files_on_media_file_id"
 
   create_table "activity_versions_references", id: false, force: true do |t|
     t.integer "activity_version_id", null: false
     t.integer "reference_id",        null: false
   end
 
-  add_index "activity_versions_references", ["activity_version_id"], name: "index_activity_versions_references_on_activity_version_id", using: :btree
-  add_index "activity_versions_references", ["reference_id"], name: "index_activity_versions_references_on_reference_id", using: :btree
+  add_index "activity_versions_references", ["activity_version_id"], name: "index_activity_versions_references_on_activity_version_id"
+  add_index "activity_versions_references", ["reference_id"], name: "index_activity_versions_references_on_reference_id"
 
   create_table "categories", force: true do |t|
     t.string   "group"
@@ -83,10 +80,12 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"
+    t.integer  "media_file_id"
   end
 
-  add_index "categories", ["group", "name"], name: "index_categories_on_group_and_name", unique: true, using: :btree
-  add_index "categories", ["user_id"], name: "index_categories_on_user_id", using: :btree
+  add_index "categories", ["group", "name"], name: "index_categories_on_group_and_name", unique: true
+  add_index "categories", ["media_file_id"], name: "index_categories_on_media_file_id"
+  add_index "categories", ["user_id"], name: "index_categories_on_user_id"
 
   create_table "comment_versions", force: true do |t|
     t.integer  "status"
@@ -97,15 +96,15 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.integer  "comment_id"
   end
 
-  add_index "comment_versions", ["comment_id"], name: "index_comment_versions_on_comment_id", using: :btree
+  add_index "comment_versions", ["comment_id"], name: "index_comment_versions_on_comment_id"
 
   create_table "comment_versions_media_files", id: false, force: true do |t|
     t.integer "comment_version_id", null: false
     t.integer "media_file_id",      null: false
   end
 
-  add_index "comment_versions_media_files", ["comment_version_id"], name: "index_comment_versions_media_files_on_comment_version_id", using: :btree
-  add_index "comment_versions_media_files", ["media_file_id"], name: "index_comment_versions_media_files_on_media_file_id", using: :btree
+  add_index "comment_versions_media_files", ["comment_version_id"], name: "index_comment_versions_media_files_on_comment_version_id"
+  add_index "comment_versions_media_files", ["media_file_id"], name: "index_comment_versions_media_files_on_media_file_id"
 
   create_table "comments", force: true do |t|
     t.integer  "status"
@@ -115,8 +114,8 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.integer  "activity_id"
   end
 
-  add_index "comments", ["activity_id"], name: "index_comments_on_activity_id", using: :btree
-  add_index "comments", ["user_id"], name: "index_comments_on_user_id", using: :btree
+  add_index "comments", ["activity_id"], name: "index_comments_on_activity_id"
+  add_index "comments", ["user_id"], name: "index_comments_on_user_id"
 
   create_table "favourite_activities", id: false, force: true do |t|
     t.integer  "user_id",     null: false
@@ -125,8 +124,8 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.datetime "updated_at"
   end
 
-  add_index "favourite_activities", ["activity_id"], name: "index_favourite_activities_on_activity_id", using: :btree
-  add_index "favourite_activities", ["user_id"], name: "index_favourite_activities_on_user_id", using: :btree
+  add_index "favourite_activities", ["activity_id"], name: "index_favourite_activities_on_activity_id"
+  add_index "favourite_activities", ["user_id"], name: "index_favourite_activities_on_user_id"
 
   create_table "media_files", force: true do |t|
     t.binary   "data"
@@ -137,6 +136,8 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.string   "uri"
   end
 
+  add_index "media_files", ["uri"], name: "index_media_files_on_uri", unique: true
+
   create_table "ratings", id: false, force: true do |t|
     t.integer  "activity_id", null: false
     t.integer  "user_id",     null: false
@@ -146,8 +147,8 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.datetime "updated_at"
   end
 
-  add_index "ratings", ["activity_id"], name: "index_ratings_on_activity_id", using: :btree
-  add_index "ratings", ["user_id"], name: "index_ratings_on_user_id", using: :btree
+  add_index "ratings", ["activity_id"], name: "index_ratings_on_activity_id"
+  add_index "ratings", ["user_id"], name: "index_ratings_on_user_id"
 
   create_table "references", force: true do |t|
     t.string   "uri"
@@ -174,7 +175,7 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.integer  "user_id"
   end
 
-  add_index "user_identities", ["user_id"], name: "index_user_identities_on_user_id", using: :btree
+  add_index "user_identities", ["user_id"], name: "index_user_identities_on_user_id"
 
   create_table "users", force: true do |t|
     t.string   "email"
@@ -184,6 +185,6 @@ ActiveRecord::Schema.define(version: 20140927123626) do
     t.datetime "updated_at"
   end
 
-  add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
+  add_index "users", ["email"], name: "index_users_on_email", unique: true
 
 end

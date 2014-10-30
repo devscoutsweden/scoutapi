@@ -12,6 +12,7 @@ module Api
       def create
         @category = Category.new(validated_params)
         @category.user = @userApiKey.user
+        @category.media_file = get_or_create_media_file()
         if @category.save
           respond_with :api, :v1, @category, status: :created
         else
@@ -24,10 +25,25 @@ module Api
       end
 
       def update
+        @category.media_file = get_or_create_media_file()
         if @category.update(validated_params)
           head :no_content
         else
           respond_with @category.errors, status: :unprocessable_entity
+        end
+      end
+
+      def get_or_create_media_file
+        if !params[:media_file_id].nil?
+          MediaFile.find(params[:media_file_id])
+        elsif !params[:media_file_uri].nil?
+          file = MediaFile.find_by_uri(params[:media_file_uri])
+          if file.nil?
+            file = MediaFile.new({ :uri => params[:media_file_uri] })
+          end
+          file
+        else
+          nil
         end
       end
 
@@ -42,7 +58,7 @@ module Api
       private
 
       def find_category(id)
-        Category.find(id)
+        Category.joins("LEFT OUTER JOIN media_files ON media_files.id = categories.media_file_id").includes(:media_file).find(id)
       end
 
       def set_category
