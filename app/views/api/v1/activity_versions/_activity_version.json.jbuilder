@@ -23,6 +23,6 @@ json.extract! activity_version,
               :status,
               :created_at
 
-json.categories activity_version.categories, :id, :group, :name
+json.categories activity_version.categories, partial: 'api/v1/categories/category', as: :category
+json.media_files activity_version.media_files, partial: 'api/v1/media_files/media_file', as: :media_file
 json.references activity_version.references, :id, :description, :uri
-json.media_files activity_version.media_files, :id, :mime_type, :data, :uri, :status
