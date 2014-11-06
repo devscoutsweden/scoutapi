@@ -37,17 +37,23 @@ Please feel free to use a different markup language if you do not plan to run
 
     devscout@test:~/rails-apps/scoutapi$ git pull
 
-2. Stop application
+2. Make sure the database connection string is stored in the environment variable DATABASE_URL.
+
+    devscout@test:~/rails-apps/scoutapi$ export DATABASE_URL=postgresql://USERNAME:PASSWORD@localhost/DATABASE
+
+3. Stop application
 
     devscout@test:~/rails-apps/scoutapi$ kill -9 $(cat tmp/pids/server.pid)
 
-3. Migrate database
+4. Migrate database
 
     devscout@test:~/rails-apps/scoutapi$ bin/rake db:migrate
 
-4. Start application
+5. Start application in development mode (first option) or test mode (second option)
 
     devscout@test:~/rails-apps/scoutapi$ bin/rails server -p 10081 -d
+
+    devscout@test:~/rails-apps/scoutapi$ bin/rails server -p 10081 -d -e test
 
 == Working with Heroku
 
