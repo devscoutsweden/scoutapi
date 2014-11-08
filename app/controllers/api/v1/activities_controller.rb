@@ -17,6 +17,10 @@ module Api
           q = q.where(featured: query_conditions[:featured] == "true")
         end
 
+        if params.has_key?("id")
+          q = q.where(activity_id: (params[:id].is_a?(Array) ? params[:id] : params[:id].split(',')) )
+        end
+
         if query_conditions.has_key?("age_1")
           q = q.where("activity_versions.age_min <= ?", query_conditions[:age_1].to_i)
           q = q.where("? <= activity_versions.age_max ", query_conditions[:age_1].to_i)
@@ -49,7 +53,7 @@ module Api
         end
         if params.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
-          q = q.joins(:categories).where(categories: { id: params[:categories] })
+          q = q.joins(:categories).where(categories: { id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(',')) })
         end
         if query_conditions.has_key?("text")
           q = q.where("activity_versions.name LIKE ? "+

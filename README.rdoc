@@ -246,6 +246,23 @@ Show featured (hand-picked by editor) activities with "person" in description:
   GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
   Authorization: Token token="4d7a9ae16d0092c35f63"
 
+Show activities from certain categories:
+
+  GET http://127.0.0.1:3000/api/v1/activities?categories[]=1&categories[]=2
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+  GET http://127.0.0.1:3000/api/v1/activities?categories=1,2
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Show activities with certain id numbers:
+
+  GET http://127.0.0.1:3000/api/v1/activities?id[]=1&id[]=2&id[]=12&id[]=23
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+  GET http://127.0.0.1:3000/api/v1/activities?cid=1,2,12,23
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+
 Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):
 
