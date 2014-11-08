@@ -5,6 +5,7 @@ module Api
     class ActivitiesController < ApplicationController
       before_filter :restrict_access_to_api_users
       before_action :set_activity, only: [:show, :update, :destroy]
+      before_action :init_output_attr_lists, only: [:show, :index]
 
       def index
         query_conditions = get_find_condition_params
@@ -84,17 +85,70 @@ module Api
           # Perform search and return the ids of all matching activities. Then
           # select N random values from this list of primary keys. The stress on
           # the database is lessened by only having to return the ids.
-          q = q.pluck(:id).sample(query_conditions["random"].to_i)
+          ids = q.pluck(:id).sample(query_conditions["random"].to_i)
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = ActivityVersion.includes(:activity, :references, :categories, :media_files).order(:activity_id, :id).find(q);
+          q = get_base_search_query(ActivityVersion).find(ids);
         else
-          q = q.includes(:activity, :references, :categories, :media_files).order(:activity_id, :id)
+          q = get_base_search_query(q)
         end
         @activityVersions = q;
 
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
         @favouritesCount = get_favourite_count(get_activity_ids(@activityVersions))
+      end
+
+      def get_base_search_query(q)
+        if !@attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
+          q = q.includes(:activity)
+        elsif @attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
+          q = q.includes(:activity, :categories)
+        else
+          q = q.includes(:activity, :categories, :media_files, :references)
+        end
+        q.order(:activity_id, :id)
+      end
+
+      def init_output_attr_lists
+        allowed_activity_version_attrs = [
+          'name',
+          'descr_introduction',
+          'descr_main',
+          'descr_material',
+          'descr_notes',
+          'descr_prepare',
+          'descr_safety',
+          'featured',
+          'age_max',
+          'age_min',
+          'participants_max',
+          'participants_min',
+          'time_max',
+          'time_min',
+          'published_at',
+          'status',
+          'created_at'
+        ]
+
+        if params.has_key?('attrs') && params[:attrs].is_a?(Array)
+          @attrs = params[:attrs]
+        elsif params.has_key?('attrs') && params[:attrs] == 'limited'
+          @attrs = ['name',
+                    'descr_introduction',
+                    'featured',
+                    'age_max',
+                    'age_min',
+                    'participants_max',
+                    'participants_min',
+                    'time_max',
+                    'time_min',
+
+                    'categories']
+        else
+          @attrs = allowed_activity_version_attrs + ['categories', 'media_files', 'references']
+        end
+
+        @activity_version_attrs = @attrs.nil? ? allowed_activity_version_attrs : @attrs & allowed_activity_version_attrs
       end
 
       def get_favourite_count(ids)
@@ -126,7 +180,7 @@ module Api
 
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
         @favouritesCount = get_favourite_count(@activity.id)
-        
+
         if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
           version.user = @userApiKey.user
@@ -232,7 +286,7 @@ module Api
       #end
 
       def get_activity_version_params
-	params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max)
       end
 
       def get_find_condition_params

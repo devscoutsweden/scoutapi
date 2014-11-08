@@ -4,25 +4,14 @@ json.revision_id activity_version.id
 # Number of users who have marked the activity as a favourite
 json.favourite_count @favouritesCount[activity_version.activity.id].nil? ? 0 : @favouritesCount[activity_version.activity.id]
 
-json.extract! activity_version,
-              :name,
-              :descr_introduction,
-              :descr_main,
-              :descr_material,
-              :descr_notes,
-              :descr_prepare,
-              :descr_safety,
-              :featured,
-              :age_max,
-              :age_min,
-              :participants_max,
-              :participants_min,
-              :time_max,
-              :time_min,
-              :published_at,
-              :status,
-              :created_at
+@activity_version_attrs.each { |key| json.set! key, activity_version.public_send(key) }
 
-json.categories activity_version.categories, partial: 'api/v1/categories/category', as: :category
-json.media_files activity_version.media_files, partial: 'api/v1/media_files/media_file', as: :media_file
-json.references activity_version.references, :id, :description, :uri
+if @attrs.include? 'categories'
+  json.categories activity_version.categories, partial: 'api/v1/categories/category', as: :category
+end
+if @attrs.include? 'media_files'
+  json.media_files activity_version.media_files, partial: 'api/v1/media_files/media_file', as: :media_file
+end
+if @attrs.include? 'references'
+  json.references activity_version.references, :id, :description, :uri
+end

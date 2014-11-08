@@ -144,6 +144,85 @@ specified, or if it is incorrect:
 
     HTTP Token: Access denied.
 
+=== Returning limited set of attributes for activities
+
+In order to save bandwidth, it is possible to limit the number of attributes
+returned for activities. There are three options:
+
+1) Set the attrs parameter to "limited" and get a small set of predefined
+attributes for each activity. This includes attributes which are commonly
+presented to end-users on search result screens.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_introduction": null,
+       "featured": null,
+       "age_max": 25,
+       "age_min": 19,
+       "participants_max": 10,
+       "participants_min": 5,
+       "time_max": 60,
+       "time_min": 30,
+       "categories":    [
+                {
+             "id": 3,
+             "group": "scout-concept",
+             "name": "Andakt, stilla stund",
+             "updated_at": "2014-09-06T07:49:41.384Z"
+          },
+          ...
+       ]
+    }
+
+2) Set the attrs parameter to a customer set of attributes by specifying each
+desired attribute in its own attrs[] parameter. Example: attrs[]=name&attrs[]=descr_main.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_main": "This is how you do..."
+    }
+
+3) Omit the attrs parameter and all attributes will be returned.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_introduction": null,
+       "descr_main": "This is how you do...",
+       "descr_material": "Rope, ...",
+       "descr_notes": "Remember to...",
+       "descr_prepare": "Before you start, ensure that...",
+       "descr_safety": "It is important not to...",
+       "featured": null,
+       "age_max": 25,
+       "age_min": 19,
+       "participants_max": 10,
+       "participants_min": 5,
+       "time_max": 60,
+       "time_min": 30,
+       "published_at": null,
+       "status": 3,
+       "created_at": "2014-10-04T13:01:37.250Z",
+       "categories":    [
+                {
+             "id": 3,
+             "group": "scout-concept",
+             "name": "Andakt, stilla stund",
+             "updated_at": "2014-09-06T07:49:41.384Z"
+          },
+          ...
+       ],
+       "media_files": [],
+       "references": []
+    }
 
 === Search for activities
 
