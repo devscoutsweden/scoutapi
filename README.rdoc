@@ -144,6 +144,29 @@ specified, or if it is incorrect:
 
     HTTP Token: Access denied.
 
+=== Response Compression
+
+The server supports response compression using deflate or gzip. Simply add the
+Accept-Encoding header to your request, as shown in the samples below:
+
+Requesting the response to be uncompressed (using the http client "curl"):
+
+    curl --output scoutapi.flat --header "Authorization: Token token=\"85df3deb58\"" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 974232 bytes (at the time of testing)
+
+Requesting the response to be "gzip compressed" (using the http client "curl"):
+
+    curl --output scoutapi.gzip --header "Authorization: Token token=\"85df3deb58\"" --header "Accept-Encoding: gzip" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 241437 bytes (roughly 75% less than the uncompressed response)
+
+Requesting the response to be "deflate compressed" (using the http client "curl"):
+
+    curl --output scoutapi.deflate --header "Authorization: Token token=\"85df3deb58\"" --header "Accept-Encoding: deflate" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 241419 bytes (roughly 75% less than the uncompressed response)
+
 === Returning limited set of attributes for activities
 
 In order to save bandwidth, it is possible to limit the number of attributes
