@@ -4,7 +4,9 @@ Scoutapi::Application.routes.draw do
       resources :categories, only: [:index, :show, :create, :update, :destroy]
       resources :activities, only: [:index, :show, :create, :update, :destroy]
       resources :references, only: [:index, :show, :create, :update, :destroy]
-      resources :media_files, only: [:index, :show, :create, :update, :destroy]
+      resources :media_files, only: [:index, :show, :create, :update, :destroy] do
+        get 'file', to: 'media_files#handle_resized_image_request'
+      end
       post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
       get 'all_api_keys', to: 'users#all_api_keys'

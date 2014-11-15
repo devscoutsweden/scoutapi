@@ -1,7 +1,8 @@
+require 'net/http'
 module Api
   module V1
     class MediaFilesController < ApplicationController
-      before_action :set_media_file, only: [:show, :update, :destroy]
+      before_action :set_media_file, only: [:show, :update, :destroy, :handle_resized_image_request]
 
       def index
         @media_files = MediaFile.all
@@ -37,14 +38,71 @@ module Api
         end
       end
 
+      def handle_resized_image_request
+        begin
+          size = params.require(:size)
+          !!Float(size) # Will raise exception if parameter value is not numeric
+          size = size.to_s.to_f # Convert parameter value to floating-point number
+          if size < 1
+            raise ArgumentError.new("Too small size")
+          end
+        rescue StandardError => e
+          render_error e, "Invalid size", :unprocessable_entity
+          return
+        end
+
+        size = (size / 100).ceil * 100
+
+        Rails.logger.info("Will return #{@media_file.uri}, resized to #{size}x#{size} pixels.")
+
+        local_name = Digest::MD5.hexdigest((size.nil? ? 'full' : size.to_s) + @media_file.uri) + File.extname(@media_file.uri)
+
+        local_folder_path = 'tmp/media-file-cache'
+
+        if !Dir.exists?(local_folder_path)
+          Dir.mkdir(local_folder_path)
+        end
+        local_path = File.join(Pathname.new(local_folder_path).to_s, local_name)
+
+        if !File.exists?(local_path)
+          download_image_from_url(@media_file.uri, local_path)
+
+          if !size.nil?
+            cmd = "convert \"#{local_path}\" -resize \"#{size}x#{size}\" -strip \"#{local_path}\""
+            Rails.logger.info("Resizing image by executing this command: #{cmd}")
+            resp = system(cmd)
+            if resp.nil? || !resp
+              File.delete local_path
+              render_error nil, "Could not convert image file", :internal_server_error
+              return
+            end
+          end
+        end
+
+        redirect_to "/media-file-cache/" + local_name
+      end
+
       private
+
+      # Source: www.umair.io/how-to-download-images-from-url-in-ruby-and-rails/
+      def download_image_from_url(url, local_path)
+        uri = URI.parse(url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = url.include?('https')
+
+        response = http.request(
+          Net::HTTP::Get.new(uri.request_uri)
+        )
+        File.open(local_path, 'wb') { |f| f.write(response.body) }
+        Rails.logger.info("Has downloaded #{url} and saved it as #{local_path}")
+      end
 
       def find_media(id)
         MediaFile.find(id)
       end
 
       def set_media_file
-        @media_file = find_media(params[:id])
+        @media_file = find_media(params[:id] || params[:media_file_id])
       end
 
       def validated_params
