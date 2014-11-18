@@ -5,7 +5,7 @@ module Api
       before_action :set_category, only: [:show, :update, :destroy]
 
       def index
-        @categories = Category.all
+        @categories = Category.all.order(:group => :asc, :name => :asc)
         respond_with @categories
       end
 
