@@ -51,7 +51,9 @@ module Api
           return
         end
 
-        size = (size / 100).ceil * 100
+        if size > 100
+          size = (size / 100).ceil * 100
+        end
 
         Rails.logger.info("Will return #{@media_file.uri}, resized to #{size}x#{size} pixels.")
 
@@ -68,7 +70,12 @@ module Api
           download_image_from_url(@media_file.uri, local_path)
 
           if !size.nil?
-            cmd = "convert \"#{local_path}\" -resize \"#{size}x#{size}\" -strip \"#{local_path}\""
+            cmd = "convert \"#{local_path}\" -resize \"#{size}x#{size}\" -strip"
+            if @media_file.uri.end_with?('png')
+              cmd += " -quality 95 -colors 255"
+            end
+            cmd += " \"#{local_path}\""
+            Rails.logger.info("Local path: #{local_path}")
             Rails.logger.info("Resizing image by executing this command: #{cmd}")
             resp = system(cmd)
             if resp.nil? || !resp
@@ -86,7 +93,7 @@ module Api
 
       # Source: www.umair.io/how-to-download-images-from-url-in-ruby-and-rails/
       def download_image_from_url(url, local_path)
-        uri = URI.parse(url)
+        uri = URI.parse(URI.escape(url))
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = url.include?('https')
 
