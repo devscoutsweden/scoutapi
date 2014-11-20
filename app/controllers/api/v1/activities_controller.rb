@@ -5,7 +5,7 @@ module Api
     class ActivitiesController < ApplicationController
       before_filter :restrict_access_to_api_users
       before_action :set_activity, only: [:show, :update, :destroy]
-      before_action :init_output_attr_lists, only: [:show, :index]
+      before_action :init_output_attr_lists, only: [:show, :index, :create]
 
       def index
         query_conditions = get_find_condition_params
@@ -18,7 +18,7 @@ module Api
         end
 
         if params.has_key?("id")
-          q = q.where(activity_id: (params[:id].is_a?(Array) ? params[:id] : params[:id].split(',')) )
+          q = q.where(activity_id: (params[:id].is_a?(Array) ? params[:id] : params[:id].split(',')))
         end
 
         if query_conditions.has_key?("age_1")
@@ -93,6 +93,17 @@ module Api
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
           q = get_base_search_query(ActivityVersion).find(ids);
+        elsif query_conditions.has_key?("favourites")
+          favourites = FavouriteActivity.
+            group(:activity_id).
+            count(:user_id)
+
+          sorted = favourites.sort_by { |k, v| -v }
+
+          ids = sorted.map { |item| item[0] }.take(query_conditions["favourites"].to_i)
+
+          # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
+          q = get_base_search_query(ActivityVersion.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).where(:activity_id => ids));
         else
           q = get_base_search_query(q)
         end
@@ -203,11 +214,25 @@ module Api
             version.media_files << MediaFile.find(params[:media_files])
           end
 
+          if !params[:media_file_uris].nil? && !params[:media_file_uris].empty?
+            params[:media_file_uris].each do |uri|
+              version.media_files << get_or_create_media_file(uri)
+            end
+          end
+
           version.save!
           respond_with :api, :v1, @activity, status: :created
         else
           respond_with @activity.errors, status: :unprocessable_entity
         end
+      end
+
+      def get_or_create_media_file(uri)
+        file = MediaFile.find_by_uri(uri)
+        if file.nil?
+          file = MediaFile.new({ :uri => uri })
+        end
+        file
       end
 
       def update
@@ -294,7 +319,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :categories)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories)
       end
     end
   end
