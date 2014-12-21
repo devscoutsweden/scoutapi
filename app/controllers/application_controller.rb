@@ -18,6 +18,8 @@ class ApplicationController < ActionController::Base
   AUTH_TYPE_API_KEY = 'apikey'
   AUTH_TYPE_GOOGLE = 'google'
 
+  HTTP_HEADER_APIKEY = 'X-ScoutAPI-APIKey'
+
   def restrict_access_to_api_users
     authenticate_or_request_with_http_token do |token, options|
       Rails.logger.info("restrict_access_to_api_users: #{token} #{options}")
@@ -40,10 +42,13 @@ class ApplicationController < ActionController::Base
             Rails.logger.info("Google JWT: #{jwt}")
             if jwt
               #  Return an API key for the user with that Google user id.
-              identity = UserIdentity.where(type: 'google-id', data: jwt['sub'])
+              identity = UserIdentity.find_by(type: 'google-id', data: jwt['sub'])
               if identity
                 Rails.logger.info("Identity found")
-                @userApiKey = identity.user.user_api_keys.first
+                apiKey = identity.user.user_api_keys.first
+                response.headers[HTTP_HEADER_APIKEY] = @userApiKey.key
+                Rails.logger.info("Will return API key #{@userApiKey.key}")
+                @userApiKey
               else
                 Rails.logger.info('User is authenticated Google user but has not been mapped to a user in the system')
                 #  User is authenticated Google user but has not been mapped to a user in the system
@@ -59,7 +64,7 @@ class ApplicationController < ActionController::Base
 
                 if @user.save!
                   Rails.logger.info('Saved user')
-                  response.headers['X-ScoutAPI-APIKey'] = @userApiKey.key
+                  response.headers[HTTP_HEADER_APIKEY] = @userApiKey.key
                   Rails.logger.info("Will return API key #{@userApiKey.key}")
                   @userApiKey
                 else
