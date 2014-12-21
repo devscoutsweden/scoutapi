@@ -3,15 +3,15 @@ module Api
   module V1
     include Db
     class ActivitiesController < ApplicationController
-      before_filter :restrict_access_to_api_users
+      before_filter :restrict_access_to_api_users, except: [:index, :show]
       before_action :set_activity, only: [:show, :update, :destroy]
       before_action :init_output_attr_lists, only: [:show, :index, :create]
 
       def index
         query_conditions = get_find_condition_params
 
-        q = ActivityVersion.
-          where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
+        q = ActivityVersion
+        q = q.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
           q = q.where(featured: query_conditions[:featured] == "true")
