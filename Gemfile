@@ -13,6 +13,8 @@ gem 'sqlite3', :group => :development
 gem 'rails_12factor', :group => :production # Used by Heroku. Heroku integration has previously relied on using the Rails plugin system, which has been removed from Rails 4. To enable features such as static asset serving and logging on Heroku please add rails_12factor gem to your Gemfile.
 gem 'thin', :group => :production
 
+gem 'google-id-token'
+
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.3'
 # Use Uglifier as compressor for JavaScript assets

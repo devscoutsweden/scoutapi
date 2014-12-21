@@ -9,7 +9,7 @@ class UserApiKey < ActiveRecord::Base
 
   def generate_key
     begin
-      self.key = SecureRandom.hex(5) # Generate 5 random bytes, which will be returned as 10 hexadecimal characters.
+      self.key = SecureRandom.hex(20) # Generate 5 random bytes, which will be returned as 40 hexadecimal characters.
     end while self.class.find_by_key(self.key)
   end
 end
