@@ -15,53 +15,65 @@ class ApplicationController < ActionController::Base
   ANDROID_APP_DEBUG_CLIENT_ID = '551713736410-24qc0q33hkq43sebfv3r7dio6h0totq8.apps.googleusercontent.com'
   WEB_CLIENT_ID = '551713736410-q55omfobgs9j8ia4ae3r7sbi20vcvt49.apps.googleusercontent.com'
 
+  AUTH_TYPE_API_KEY = 'apikey'
+  AUTH_TYPE_GOOGLE = 'google'
+
   def restrict_access_to_api_users
     authenticate_or_request_with_http_token do |token, options|
       Rails.logger.info("restrict_access_to_api_users: #{token} #{options}")
-      case options.type
-        when 'apikey'
+      type = options.has_key?('type') ? options['type'] : AUTH_TYPE_API_KEY
+      case type
+        when AUTH_TYPE_API_KEY
           Rails.logger.info("Authenticate using API key #{token}")
           @userApiKey = UserApiKey.find_by_key(token)
-        when 'google'
+        when AUTH_TYPE_GOOGLE
           Rails.logger.info("Authenticate using Google ID Token #{token}")
+          Rails.logger.info("#{token.class}")
+          Rails.logger.info("#{WEB_CLIENT_ID.class}")
           #  Verify Google token. This will return a Google user id.
           validator = GoogleIDToken::Validator.new
-          jwt = validator.check(token,
-                                WEB_CLIENT_ID,
-                                WEB_CLIENT_ID)
-          Rails.logger.info("Google JWT: #{jwt}")
-          if jwt
-            #  Return an API key for the user with that Google user id.
-            identity = UserIdentity.where(type: 'google-id', data: jwt['sub'])
-            if identity
-              Rails.logger.info("Identity found")
-              @userApiKey = identity.user.user_api_keys.first
-            else
-              Rails.logger.info('User is authenticated Google user but has not been mapped to a user in the system')
-              #  User is authenticated Google user but has not been mapped to a user in the system
-              @user = User.new(display_name: jwt['email'], email: jwt['email'], email_verified: true)
-              identity = UserIdentity.new(type: 'google-id', data: jwt['sub'])
-              identity.user = @user
-              @user.user_identities << identity
-              @userApiKey = UserApiKey.new()
-              @userApiKey.user = @user
-              @user.user_api_keys << apiKey
-
-              Rails.logger.info('Have create in-memory objects for User, UserIdentity and UserApiKey.')
-
-              if @user.save!
-                Rails.logger.info('Saved user')
-                response.headers['X-ScoutAPI-APIKey'] = @userApiKey.key
-                Rails.logger.info("Will return API key #{@userApiKey.key}")
-                @userApiKey
+          Rails.logger.info("#{validator.class}")
+          begin
+            jwt = validator.check(token,
+                                  WEB_CLIENT_ID,
+                                  ANDROID_APP_DEBUG_CLIENT_ID)
+            Rails.logger.info("Google JWT: #{jwt}")
+            if jwt
+              #  Return an API key for the user with that Google user id.
+              identity = UserIdentity.where(type: 'google-id', data: jwt['sub'])
+              if identity
+                Rails.logger.info("Identity found")
+                @userApiKey = identity.user.user_api_keys.first
               else
-                Rails.logger.error('Failed to save user')
-                respond_with @user.errors, status: :unprocessable_entity
+                Rails.logger.info('User is authenticated Google user but has not been mapped to a user in the system')
+                #  User is authenticated Google user but has not been mapped to a user in the system
+                @user = User.new(display_name: jwt['email'], email: jwt['email'], email_verified: true)
+                identity = UserIdentity.new(type: 'google-id', data: jwt['sub'])
+                identity.user = @user
+                @user.user_identities << identity
+                @userApiKey = UserApiKey.new()
+                @userApiKey.user = @user
+                @user.user_api_keys << @userApiKey
+
+                Rails.logger.info('Have create in-memory objects for User, UserIdentity and UserApiKey.')
+
+                if @user.save!
+                  Rails.logger.info('Saved user')
+                  response.headers['X-ScoutAPI-APIKey'] = @userApiKey.key
+                  Rails.logger.info("Will return API key #{@userApiKey.key}")
+                  @userApiKey
+                else
+                  Rails.logger.error('Failed to save user')
+                  respond_with @user.errors, status: :unprocessable_entity
+                end
               end
+            else
+              Rails.logger.error('Invalid Google ID token')
+              error_forbidden('Invalid Google ID token')
             end
-          else
-            Rails.logger.error('Invalid Google ID token')
-            error_forbidden('Invalid Google ID token')
+          rescue JWT::ExpiredSignature
+            Rails.logger.error('Signature has expired')
+            error_forbidden('Signature has expired')
           end
         else
           Rails.logger.error('Unsupported token type')

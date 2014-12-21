@@ -13,7 +13,9 @@ gem 'sqlite3', :group => :development
 gem 'rails_12factor', :group => :production # Used by Heroku. Heroku integration has previously relied on using the Rails plugin system, which has been removed from Rails 4. To enable features such as static asset serving and logging on Heroku please add rails_12factor gem to your Gemfile.
 gem 'thin', :group => :production
 
-gem 'google-id-token'
+# Must use https://github.com/Nerian/google-id-token instead of official "because the original one is
+# outdated" (source: http://dev.mikamai.com/post/101852140929/google-device-authentication-in-your-rails-app)
+gem 'google-id-token', git: 'git@github.com:Nerian/google-id-token.git'
 
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.3'
