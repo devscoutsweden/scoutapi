@@ -9,6 +9,7 @@ Scoutapi::Application.routes.draw do
       end
       post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
+      put 'users/profile', to: 'users#update_profile'
       get 'all_api_keys', to: 'users#all_api_keys'
       get 'favourites', to: 'favourites#index'
       put 'favourites', to: 'favourites#update'

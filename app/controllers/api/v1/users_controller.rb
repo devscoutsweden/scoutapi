@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      before_filter :restrict_access_to_api_users, except: [:create, :all_api_keys]
+      before_filter :restrict_access_to_api_users, except: [:all_api_keys]
       before_action :set_user, only: [:show, :update, :destroy]
 
       #def index
@@ -46,6 +46,14 @@ module Api
       #    respond_with @user.errors, status: :unprocessable_entity
       #  end
       #end
+
+      def update_profile
+        if @userApiKey.user.update(validated_params)
+          head :no_content
+        else
+          respond_with @userApiKey.user.errors, status: :unprocessable_entity
+        end
+      end
 
       #def destroy
       #  if @user.destroy
