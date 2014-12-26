@@ -7,7 +7,7 @@ Scoutapi::Application.routes.draw do
       resources :media_files, only: [:index, :show, :create, :update, :destroy] do
         get 'file', to: 'media_files#handle_resized_image_request'
       end
-      post 'users', to: 'users#create'
+      #post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
       put 'users/profile', to: 'users#update_profile'
       get 'all_api_keys', to: 'users#all_api_keys'
