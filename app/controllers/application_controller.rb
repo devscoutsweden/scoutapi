@@ -46,9 +46,8 @@ class ApplicationController < ActionController::Base
               if identity
                 Rails.logger.info("Identity found")
                 apiKey = identity.user.user_api_keys.first
-                response.headers[HTTP_HEADER_APIKEY] = @userApiKey.key
-                Rails.logger.info("Will return API key #{@userApiKey.key}")
-                @userApiKey
+                response.headers[HTTP_HEADER_APIKEY] = apiKey.key
+                @userApiKey = apiKey
               else
                 Rails.logger.info('User is authenticated Google user but has not been mapped to a user in the system')
                 #  User is authenticated Google user but has not been mapped to a user in the system
@@ -60,12 +59,11 @@ class ApplicationController < ActionController::Base
                 @userApiKey.user = @user
                 @user.user_api_keys << @userApiKey
 
-                Rails.logger.info('Have create in-memory objects for User, UserIdentity and UserApiKey.')
+                Rails.logger.debug('Have create in-memory objects for User, UserIdentity and UserApiKey.')
 
                 if @user.save!
-                  Rails.logger.info('Saved user')
+                  Rails.logger.info("Saved user. Set API key to #{@userApiKey.key}")
                   response.headers[HTTP_HEADER_APIKEY] = @userApiKey.key
-                  Rails.logger.info("Will return API key #{@userApiKey.key}")
                   @userApiKey
                 else
                   Rails.logger.error('Failed to save user')
