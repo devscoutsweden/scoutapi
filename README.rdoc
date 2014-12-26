@@ -45,9 +45,11 @@ Please feel free to use a different markup language if you do not plan to run
 
     devscout@test:~/rails-apps/scoutapi$ kill -9 $(cat tmp/pids/server.pid)
 
-4. Migrate database
+4. Migrate database and install dependencies
 
     devscout@test:~/rails-apps/scoutapi$ bin/rake db:migrate
+
+    devscout@test:~/rails-apps/scoutapi$ bundle install
 
 5. Start application in development mode (first option) or test mode (second option)
 
@@ -126,14 +128,29 @@ http header:
 
     Authorization: Token token="4d7a9ae16d0092c35f63"
 
-API keys allow the system to keep track of client interactions, including
-auditing and permissions. Acquiring an API key is very simple: Just create a new
-user account by sending a POST request to the /api/v1/users URL. This will
-create an anonymous user and the server response will include the API key for
-the newly created user. The client must remember to store the returned API key
-as there is (currently) no way of retrieving it later on.
+API keys allow the system to keep track of client interactions, thus preventing unauthorized access to information.
 
-A sample request for creating a new user is found further down this document.
+The client must provide credentials in order to acquiring an API key. Currently, only Google+ ID Tokens are accepted as
+credentials. This means that API users must have a Google+ account and that API clients must support acquiring Google ID
+Tokens from Google.
+
+In order to acquire an API key, the client does this:
+
+1. Use Google APIs to get an id token.
+
+2. Let the id token "piggy-back" on the next API request by setting the Authorization header:
+
+    Authorization: Token token="INCLUDE_GOOGLE_ID_TOKEN_HERE", type="google"
+
+3. The server will return the API key in a response header called "X-ScoutAPI-APIKey". The server validates the id token
+by connecting to Google's token verification service. A new API user (including a new API key) will be create if this is
+the first request made by the user. This means that new users do not need to register explicitly (since new user
+accounts are automatically created when the server encounters Google user ids which it has not seen before).
+
+4. The client caches the returned API key and uses it, instead of the Google id token (which eventually will expire),
+for subsequent requests.
+
+    Authorization: Token token="API_KEY_RETURNED_IN_RESPONSE_HEADER"
 
 The server will response with this error message if a token has not been
 specified, or if it is incorrect:
@@ -290,6 +307,15 @@ Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Limit result to the overall favourite activities. This means a list of activities
+sorted by the number of users who have marked them as their favourites. This
+parameter cannot be used together with any other filtering parameters (meaning
+that it is not possible to use it to, for example, show favourites for a particular
+category or age group). The example below will return the top-5 activites:
+
+  GET http://127.0.0.1:3000/api/v1/activities?favourites=5
   Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show "water" activities suitable for 10-year-old children:
@@ -722,3 +748,9 @@ Request
 Response
 
     HTTP/1.1 204 No Content
+
+=== Get media files
+
+/file
+
+TODO: Write about how media files are fetched, including how they are automatically resized to the requested size.
