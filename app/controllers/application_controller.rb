@@ -30,16 +30,12 @@ class ApplicationController < ActionController::Base
           @userApiKey = UserApiKey.find_by_key(token)
         when AUTH_TYPE_GOOGLE
           Rails.logger.info("Authenticate using Google ID Token #{token}")
-          Rails.logger.info("#{token.class}")
-          Rails.logger.info("#{WEB_CLIENT_ID.class}")
           #  Verify Google token. This will return a Google user id.
           validator = GoogleIDToken::Validator.new
-          Rails.logger.info("#{validator.class}")
           begin
             jwt = validator.check(token,
                                   WEB_CLIENT_ID,
                                   ANDROID_APP_DEBUG_CLIENT_ID)
-            Rails.logger.info("Google JWT: #{jwt}")
             if jwt
               #  Return an API key for the user with that Google user id.
               identity = UserIdentity.find_by(type: 'google-id', data: jwt['sub'])
