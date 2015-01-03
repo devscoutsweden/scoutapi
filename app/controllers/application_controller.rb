@@ -13,6 +13,7 @@ class ApplicationController < ActionController::Base
   protected
 
   ANDROID_APP_DEBUG_CLIENT_ID = '551713736410-24qc0q33hkq43sebfv3r7dio6h0totq8.apps.googleusercontent.com'
+  ANDROID_APP_RELEASE_CLIENT_ID = '551713736410-959bfbeh3rv79dsiu112q6de1kj3tdak.apps.googleusercontent.com'
   WEB_CLIENT_ID = '551713736410-q55omfobgs9j8ia4ae3r7sbi20vcvt49.apps.googleusercontent.com'
 
   AUTH_TYPE_API_KEY = 'apikey'
@@ -33,9 +34,9 @@ class ApplicationController < ActionController::Base
           #  Verify Google token. This will return a Google user id.
           validator = GoogleIDToken::Validator.new
           begin
-            jwt = validator.check(token,
-                                  WEB_CLIENT_ID,
-                                  ANDROID_APP_DEBUG_CLIENT_ID)
+            clientIds = Array[ANDROID_APP_RELEASE_CLIENT_ID, ANDROID_APP_DEBUG_CLIENT_ID]
+            # Check Google ID token and compare it's client id to all known/accepted client ids. Use first non-nil result from check(...).
+            jwt = clientIds.map { |clientId| validator.check(token, WEB_CLIENT_ID, clientId) }.compact.first
             if jwt
               #  Return an API key for the user with that Google user id.
               identity = UserIdentity.find_by(type: 'google-id', data: jwt['sub'])
@@ -55,7 +56,7 @@ class ApplicationController < ActionController::Base
                 @userApiKey.user = @user
                 @user.user_api_keys << @userApiKey
 
-                Rails.logger.debug('Have create in-memory objects for User, UserIdentity and UserApiKey.')
+                Rails.logger.debug('Have created in-memory objects for User, UserIdentity and UserApiKey.')
 
                 if @user.save!
                   Rails.logger.info("Saved user. Set API key to #{@userApiKey.key}")
