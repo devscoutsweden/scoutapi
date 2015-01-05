@@ -9,7 +9,7 @@ json.extract! category,
 #json.name category.name.force_encoding("ISO-8859-1")
 
 # Number of users who have marked the activity as a favourite
-json.activities_count @usageCount[category.id].nil? ? 0 : @usageCount[category.id]
+json.activities_count @usageCount[category.id].nil? ? 0 : @usageCount[category.id] if @usageCount # The activities_count property needs to be included conditionally since the @usageCount variable is only available from the Categories controller.
 
 json.media_file do
   json.partial! category.media_file
