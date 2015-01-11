@@ -3,5 +3,7 @@ activity ||= @activity
 if @all_versions
   json.partial! activity
 else
-  json.partial! activity.activity_versions.order(:id).last
+  #TODO: Inline value of @activityVersion
+  @activityVersion = activity.activity_versions.order(:id).last
+  json.partial! @activityVersion
 end

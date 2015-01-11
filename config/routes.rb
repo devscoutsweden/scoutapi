@@ -2,7 +2,11 @@ Scoutapi::Application.routes.draw do
   namespace :api, defaults: {format: 'json'} do
     namespace :v1 do
       resources :categories, only: [:index, :show, :create, :update, :destroy]
-      resources :activities, only: [:index, :show, :create, :update, :destroy]
+      resources :activities, only: [:index, :show, :create, :update, :destroy] do
+        get 'rating', to: 'ratings#show'
+        post 'rating', to: 'ratings#create'
+        delete 'rating', to: 'ratings#destroy'
+      end
       resources :references, only: [:index, :show, :create, :update, :destroy]
       resources :media_files, only: [:index, :show, :create, :update, :destroy] do
         get 'file', to: 'media_files#handle_resized_image_request'

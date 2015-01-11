@@ -10,7 +10,7 @@ module Api
       def index
         query_conditions = get_find_condition_params
 
-        q = ActivityVersion
+        q = get_base_search_query
         q = q.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
@@ -53,7 +53,14 @@ module Api
         end
         if params.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
-          q = q.joins(:categories).where(categories: { id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(',')) })
+          q = q.joins(:categories).where(categories: {id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(','))})
+        end
+        if params.has_key?("rating")
+          #TODO: Do we have to define the join here?
+          ratingJoin = Rating.select('activity_id, count(*) ratings_count, avg(rating) ratings_average').group(:activity_id).to_sql
+          q = q.joins("LEFT JOIN (#{ratingJoin}) r ON activity_versions.activity_id = r.activity_id").select('activity_versions.*, r.ratings_count, r.ratings_average')
+
+          q = q.where("r.ratings_count > 0")
         end
         if query_conditions.has_key?("text")
           q = q.where("activity_versions.name LIKE ? "+
@@ -92,7 +99,7 @@ module Api
           ids = q.pluck(:id).sample(query_conditions["random"].to_i)
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = get_base_search_query(ActivityVersion).find(ids);
+          q = get_final_search_query(get_base_search_query).find(ids);
         elsif query_conditions.has_key?("favourites")
           favourites = FavouriteActivity.
             group(:activity_id).
@@ -102,18 +109,27 @@ module Api
 
           ids = sorted.map { |item| item[0] }.take(query_conditions["favourites"].to_i)
 
-          # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = get_base_search_query(ActivityVersion.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).where(:activity_id => ids));
+          q = get_final_search_query(get_base_search_query.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).where(:activity_id => ids));
         else
-          q = get_base_search_query(q)
+          q = get_final_search_query(q)
         end
         @activityVersions = q;
 
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        @favouritesCount = get_favourite_count(get_activity_ids(@activityVersions))
+        load_activity_stats(get_activity_ids(@activityVersions))
       end
 
-      def get_base_search_query(q)
+      def get_base_search_query()
+        ratingJoin = Rating.select('activity_id, count(*) ratings_count, avg(rating) ratings_average').group(:activity_id).to_sql
+        favouritesJoin = FavouriteActivity.select('activity_id, count(*) favourite_count').group(:activity_id).to_sql
+        q = ActivityVersion.
+            joins("LEFT JOIN (#{ratingJoin}) r ON activity_versions.activity_id = r.activity_id").
+            joins("LEFT JOIN (#{favouritesJoin}) f ON activity_versions.activity_id = f.activity_id").
+            select('activity_versions.*, r.ratings_count, r.ratings_average, f.favourite_count')
+        q
+      end
+
+      def get_final_search_query(q)
         if !@attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
           q = q.includes(:activity)
         elsif @attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
@@ -142,7 +158,10 @@ module Api
           'time_min',
           'published_at',
           'status',
-          'created_at'
+          'created_at',
+          'ratings_count',
+          'ratings_average',
+          'favourite_count'
         ]
 
         if params.has_key?('attrs') && params[:attrs].is_a?(Array)
@@ -166,11 +185,20 @@ module Api
         @activity_version_attrs = @attrs.nil? ? allowed_activity_version_attrs : @attrs & allowed_activity_version_attrs
       end
 
-      def get_favourite_count(ids)
-        FavouriteActivity.
-          where(:activity_id => ids).
-          group(:activity_id).
-          count(:user_id)
+      #TODO: load_activity_stats should no longer be necessary
+      def load_activity_stats(ids)
+        @favouritesCount = FavouriteActivity.
+            where(:activity_id => ids).
+            group(:activity_id).
+            count(:user_id)
+        #@ratingsData = Hash.new
+        #Rating.select('activity_id, count(*) count, avg(rating) average').
+        #    where(:activity_id => ids).
+        #    group(:activity_id).each do |r|
+        #  @ratingsData[r.activity_id] = {average: r.average, count: r.count}
+        #end
+        #
+        #Rails.logger.info("@ratingsData: #{@ratingsData}")
       end
 
       # Extracts the activity ids from the activity versions supplied
@@ -185,7 +213,7 @@ module Api
       def show
         @all_versions = params.has_key?('all_versions') && params[:all_versions] == 'true'
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        @favouritesCount = get_favourite_count(@activity.id)
+        load_activity_stats(@activity.id)
         respond_with @activity
       end
 
@@ -194,7 +222,7 @@ module Api
         @activity.user = @userApiKey.user
 
         # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        @favouritesCount = get_favourite_count(@activity.id)
+        load_activity_stats(@activity.id)
 
         if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
@@ -221,7 +249,11 @@ module Api
           end
 
           version.save!
-          respond_with :api, :v1, @activity, status: :created
+
+          @activityVersion = get_base_search_query.where(id: version.id).take
+
+          #TODO: Refactor back to respond_with instead of @activityVersion
+          #respond_with :api, :v1, @activity, status: :created
         else
           respond_with @activity.errors, status: :unprocessable_entity
         end
