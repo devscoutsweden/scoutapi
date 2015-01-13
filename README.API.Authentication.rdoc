@@ -21,12 +21,12 @@ In order to acquire an API key, the client does this:
     Authorization: Token token="INCLUDE_GOOGLE_ID_TOKEN_HERE", type="google"
 
 3. The server will return the API key in a response header called "X-ScoutAPI-APIKey". The server validates the id token
-by connecting to Google's token verification service. A new API user (including a new API key) will be create if this is
-the first request made by the user. This means that new users do not need to register explicitly (since new user
-accounts are automatically created when the server encounters Google user ids which it has not seen before).
+   by connecting to Google's token verification service. A new API user (including a new API key) will be create if this is
+   the first request made by the user. This means that new users do not need to register explicitly (since new user
+   accounts are automatically created when the server encounters Google user ids which it has not seen before).
 
 4. The client caches the returned API key and uses it, instead of the Google id token (which eventually will expire),
-for subsequent requests.
+   for subsequent requests.
 
     Authorization: Token token="API_KEY_RETURNED_IN_RESPONSE_HEADER"
 
