@@ -1,0 +1,110 @@
+== Response Compression
+
+The server supports response compression using deflate or gzip. Simply add the
+Accept-Encoding header to your request, as shown in the samples below:
+
+Requesting the response to be uncompressed (using the http client "curl"):
+
+    curl --output scoutapi.flat --header "Authorization: Token token=\"85df3deb58\"" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 974232 bytes (at the time of testing)
+
+Requesting the response to be "gzip compressed" (using the http client "curl"):
+
+    curl --output scoutapi.gzip --header "Authorization: Token token=\"85df3deb58\"" --header "Accept-Encoding: gzip" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 241437 bytes (roughly 75% less than the uncompressed response)
+
+Requesting the response to be "deflate compressed" (using the http client "curl"):
+
+    curl --output scoutapi.deflate --header "Authorization: Token token=\"85df3deb58\"" --header "Accept-Encoding: deflate" http://devscout.mikaelsvensson.info:10081/api/v1/activities?age_1=8&age_2=9
+
+...will return 241419 bytes (roughly 75% less than the uncompressed response)
+
+
+== Create new category
+
+Request
+
+  POST "/api/v1/categories"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+
+  {
+    "group": "Scout Program Track",
+    "name": "Relationships"
+  }
+
+Response if successful
+
+  Status Code: 201 Created
+
+  {
+    "id": 4,
+    "group": "Scout Program Track",
+    "name": "Relationships",
+    "status": null,
+    "created_at": "2014-08-23T10:32:54.081Z",
+    "updated_at": "2014-08-23T10:32:54.081Z",
+    "user_id": null
+  }
+
+Response if error occurred (example when group and name are not unique)
+
+  Status Code: 422 Unprocessable Entity
+
+  {
+    "error": "The input values conflict with another object. Perhaps the name is already taken?"
+  }
+
+== Update a category
+
+Request
+
+  PUT "/api/v1/categories"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+
+  {
+    "group": "Scout Program Track",
+    "name": "Relationships"
+  }
+
+Response if successful
+
+  Status Code: 204 No Content
+
+Response if error occurred (example when group and name are not unique)
+
+  Status Code: 422 Unprocessable Entity
+
+  {
+    "error": "The input values conflict with another object. Perhaps the name is already taken?"
+  }
+
+== Delete a category
+
+Request
+
+  DELETE "/api/v1/categories/1"
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+
+Response if successful
+
+  Status Code: 204 No Content
+
+Response if error occurred (example when category does not exist)
+
+  Status Code: 404 Not Found
+
+  {
+    "error": "The requested object does not exist."
+  }
+
+
+== Get media files
+
+/file
+
+TODO: Write about how media files are fetched, including how they are automatically resized to the requested size.

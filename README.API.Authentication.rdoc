@@ -1,0 +1,78 @@
+== API Keys and User Credentials
+
+Almost all parts of the API is protected from unauthorized access by means of
+API keys. Each API request must have an API key specified in the Authorization
+http header:
+
+    Authorization: Token token="4d7a9ae16d0092c35f63"
+
+API keys allow the system to keep track of client interactions, thus preventing unauthorized access to information.
+
+The client must provide credentials in order to acquiring an API key. Currently, only Google+ ID Tokens are accepted as
+credentials. This means that API users must have a Google+ account and that API clients must support acquiring Google ID
+Tokens from Google.
+
+In order to acquire an API key, the client does this:
+
+1. Use Google APIs to get an id token.
+
+2. Let the id token "piggy-back" on the next API request by setting the Authorization header:
+
+    Authorization: Token token="INCLUDE_GOOGLE_ID_TOKEN_HERE", type="google"
+
+3. The server will return the API key in a response header called "X-ScoutAPI-APIKey". The server validates the id token
+by connecting to Google's token verification service. A new API user (including a new API key) will be create if this is
+the first request made by the user. This means that new users do not need to register explicitly (since new user
+accounts are automatically created when the server encounters Google user ids which it has not seen before).
+
+4. The client caches the returned API key and uses it, instead of the Google id token (which eventually will expire),
+for subsequent requests.
+
+    Authorization: Token token="API_KEY_RETURNED_IN_RESPONSE_HEADER"
+
+The server will response with this error message if a token has not been
+specified, or if it is incorrect:
+
+    HTTP/1.1 401 Unauthorized
+    WWW-Authenticate: Token realm="Application"
+    Content-Type: text/html; charset=utf-8
+
+    HTTP Token: Access denied.
+
+== Show current user's profile
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/users/profile HTTP/1.1
+    Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Response
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+    {
+        "email": "USER@HOST",
+        "display_name": "Alice"
+        "created_at": "2014-09-27T13:50:55.203Z",
+        "keys": [{"key": "4d7a9ae16d0092c35f63"}]
+    }
+
+== Show all users and their API keys (only in development mode)
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/all_api_keys HTTP/1.1
+
+Response (only when server is in development mode)
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+
+    [
+       {
+            "email": "USER@HOST",
+            "display_name": "Alice"
+            "keys": [{"key": "4d7a9ae16d0092c35f63"}]
+       },
+       ...
+    ]

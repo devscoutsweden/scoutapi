@@ -1,0 +1,375 @@
+== Search for activities
+
+Show all activities:
+
+  GET http://127.0.0.1:3000/api/v1/activities
+
+Show all activities with "water" in their titles:
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water
+
+Show all activities with "water" in title or one of the description fields:
+
+  GET http://127.0.0.1:3000/api/v1/activities?text=vatten
+
+Show featured (hand-picked by editor) activities with "person" in description:
+
+  GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
+
+Show activities from certain categories:
+
+  GET http://127.0.0.1:3000/api/v1/activities?categories[]=1&categories[]=2
+
+  GET http://127.0.0.1:3000/api/v1/activities?categories=1,2
+
+Show activities which have been rated by at least 10 users:
+
+  GET http://127.0.0.1:3000/api/v1/activities?ratings_count_min=10
+
+Show activities whose average rating is at least 3.5 (out of 5):
+
+  GET http://127.0.0.1:3000/api/v1/activities?ratings_average_min=3.5
+
+Show activities with certain id numbers:
+
+  GET http://127.0.0.1:3000/api/v1/activities?id[]=1&id[]=2&id[]=12&id[]=23
+
+  GET http://127.0.0.1:3000/api/v1/activities?cid=1,2,12,23
+
+
+Limit result to a number of random activities matching the conditions (this
+example will return five random activites with the word "water" in the title):
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
+
+Limit result to the overall favourite activities. This means a list of activities
+sorted by the number of users who have marked them as their favourites. This
+parameter cannot be used together with any other filtering parameters (meaning
+that it is not possible to use it to, for example, show favourites for a particular
+category or age group). The example below will return the top-5 activites:
+
+  GET http://127.0.0.1:3000/api/v1/activities?favourites=5
+
+Show "water" activities suitable for 10-year-old children:
+
+  GET http://127.0.0.1:3000/api/v1/activities?name=water&age_1=10
+
+Searching for activities suitable for people within a certain age range requires
+some explaining. The age_1 and age_2 parameters define an age span which
+must be within the age span of the activity.
+
+This table shows the age range for a number of activities and whether or not
+each activity will be returned/matched given the specified values for different
+values of request parameters age_1 and age_2:
+
+    Activity Information----------------    Request Parameters  Activity Is Returned ---
+    Activity Name        Min Age Max Age
+
+    Tag                        0      10    age_1=2             Yes
+                                            age_1=2  age_2=20   No, since 20 is outside of 0-10 (it does not matter than 2 is within the range).
+                                            age_1=2  age_2=5    Yes
+                                            age_1=12            No, since 12 is outside of 0-10.
+    Cowboys and Indians        5      15    age_1=2             No, since 2 is outside of 5-15.
+                                            age_1=5  age_2=10   Yes
+                                            age_1=10 age_2=20   No, since 20 is outside of 5-15.
+                                            age_1=12            Yes
+    I Have Never...           15      99    age_1=20            Yes
+                                            age_1=100           No, since 100 is outside of 15-99.
+
+Sample response
+
+  [
+    {
+      "id": 1,
+      "rev_id": 1,
+      "name": "Test Activity",
+      "descr_introduction": null,
+      "descr_main": null,
+      "descr_material": null,
+      "descr_notes": null,
+      "descr_prepare": null,
+      "descr_safety": null,
+      "featured": null,
+      ...
+    },
+    ...
+    ,
+       {
+       "id": 6,
+       "rev_id": 6,
+       "name": "Test Activity",
+       "descr_introduction": null,
+       "descr_main": "This is how you do...",
+       "descr_material": "Rope, ...",
+       "descr_notes": "Remember to...",
+       "descr_prepare": "Before you start, ensure that...",
+       "descr_safety": "It is important not to...",
+       ...
+    }
+  ]
+
+== Returning limited set of attributes for activities
+
+In order to save bandwidth, it is possible to limit the number of attributes
+returned for activities. There are three options:
+
+1) Set the attrs parameter to "limited" and get a small set of predefined
+attributes for each activity. This includes attributes which are commonly
+presented to end-users on search result screens.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_introduction": null,
+       "featured": null,
+       "age_max": 25,
+       "age_min": 19,
+       "participants_max": 10,
+       "participants_min": 5,
+       "time_max": 60,
+       "time_min": 30,
+       "categories":    [
+                {
+             "id": 3,
+             "group": "scout-concept",
+             "name": "Andakt, stilla stund",
+             "updated_at": "2014-09-06T07:49:41.384Z"
+          },
+          ...
+       ]
+    }
+
+2) Set the attrs parameter to a customer set of attributes by specifying each
+desired attribute in its own attrs[] parameter. Example: attrs[]=name&attrs[]=descr_main.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_main": "This is how you do..."
+    }
+
+3) Omit the attrs parameter and all attributes will be returned.
+
+    {
+       "id": 23,
+       "revision_id": 130,
+       "favourite_count": 0,
+       "name": "Updated Test Activity 5",
+       "descr_introduction": null,
+       "descr_main": "This is how you do...",
+       "descr_material": "Rope, ...",
+       "descr_notes": "Remember to...",
+       "descr_prepare": "Before you start, ensure that...",
+       "descr_safety": "It is important not to...",
+       "featured": null,
+       "age_max": 25,
+       "age_min": 19,
+       "participants_max": 10,
+       "participants_min": 5,
+       "time_max": 60,
+       "time_min": 30,
+       "published_at": null,
+       "status": 3,
+       "created_at": "2014-10-04T13:01:37.250Z",
+       "categories":    [
+                {
+             "id": 3,
+             "group": "scout-concept",
+             "name": "Andakt, stilla stund",
+             "updated_at": "2014-09-06T07:49:41.384Z"
+          },
+          ...
+       ],
+       "media_files": [],
+       "references": []
+    }
+
+== Create activity
+
+Request
+
+  POST http://127.0.0.1:3000/api/v1/activities HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+  {
+     "name": "Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     "age_max": 25,
+     "age_min": 19,
+     "participants_max": 10,
+     "participants_min": 5,
+     "time_max": 60,
+     "time_min": 30,
+     "categories": [1, 2, 3],
+     "references": [123, 456]
+  }
+
+The activity's categories/references are specified as arrays of id numbers. This
+also means that the categories/references must have been created prior to
+updating the activity.
+
+Response if successful
+
+  HTTP/1.1 201 Created
+  {
+     "id": 11,
+     "rev_id": 12,
+     "name": "Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     ...
+  }
+
+Response in case of error
+
+  HTTP/1.1 404 Not Found
+  {
+    "error": "The requested object does not exist."
+  }
+
+
+== Read/Show activity
+
+Request to show the most-recent version of activity 11:
+
+  GET http://127.0.0.1:3000/api/v1/activities/11
+
+Response if successful:
+
+  HTTP/1.1 200 OK
+  {
+    "id": 11,
+    "rev_id": 13,
+    "name": "Updated Test Activity",
+    "descr_introduction": null,
+    "descr_main": "This is how you do...",
+    "descr_material": "Rope, ...",
+    "descr_notes": "Remember to...",
+    "descr_prepare": "Before you start, ensure that...",
+    "descr_safety": "It is important not to...",
+    ...
+  }
+
+Request to show all revisions of activity 11, not just the latest:
+
+  GET http://127.0.0.1:3000/api/v1/activities/11?all_versions=true
+
+Response:
+
+  [
+     {
+        "id": 11,
+        "rev_id": 12,
+        "name": "Test Activity",
+        "descr_introduction": null,
+        "descr_main": "This is how you do...",
+        "descr_material": "Rope, ...",
+        "descr_notes": "Remember to...",
+        "descr_prepare": "Before you start, ensure that...",
+        "descr_safety": "It is important not to...",
+        ...
+     },
+        {
+        "id": 11,
+        "rev_id": 13,
+        "name": "Updated Test Activity",
+        "descr_introduction": null,
+        "descr_main": "This is how you do...",
+        "descr_material": "Rope, ...",
+        "descr_notes": "Remember to...",
+        "descr_prepare": "Before you start, ensure that...",
+        "descr_safety": "It is important not to...",
+        ...
+     }
+  ]
+
+== Update activity
+
+Request to update activity 11 with new information (will be saved as new revision of activity):
+
+  PUT http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+  {
+     "name": "Updated Test Activity",
+     "descr_introduction": null,
+     "descr_main": "This is how you do...",
+     "descr_material": "Rope, ...",
+     "descr_notes": "Remember to...",
+     "descr_prepare": "Before you start, ensure that...",
+     "descr_safety": "It is important not to...",
+     "age_max": 25,
+     "age_min": 19,
+     "participants_max": 10,
+     "participants_min": 5,
+     "time_max": 60,
+     "time_min": 30,
+     "categories": [1, 2, 3],
+     "references": [123, 456]
+  }
+
+The activity's categories/references are specified as arrays of id numbers. This
+also means that the categories/references must have been created prior to
+updating the activity.
+
+Response:
+
+  HTTP/1.1 204 No Content
+
+== Delete activity
+
+Request to delete activity 11 (all revisions of it):
+
+  DELETE http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+
+Response:
+
+  HTTP/1.1 204 No Content
+
+== Show all categories
+
+When returing category information, the response contains two additional pieces of information:
+
+* activities_count: The number of activities which has been assigned to the category.
+
+* media_file: Information about an image which may be used to illustrate the category.
+
+Request
+
+  GET "http://127.0.0.1:3000/api/v1/categories"
+  Content-Type: application/json
+
+Response
+
+    [
+        {
+            "id": 10,
+            "group": "",
+            "name": "Andakt, stilla stund",
+            "updated_at": "2014-10-30T19:13:13.363Z",
+            "activities_count": 115,
+            "media_file":
+            {
+                "id": 98,
+                "mime_type": null,
+                "updated_at": "2014-10-30T19:13:13.362Z",
+                "uri": "http://www.mikaelsvensson.info/scoutapi/media/category_upplgg_andakt_stilla_stund.png"
+            }
+        },
+        ...
+    ]

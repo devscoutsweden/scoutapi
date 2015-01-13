@@ -1,0 +1,82 @@
+== List current user's favourite activities
+
+This operation returns the user's favoured activities in the form of a list of
+activity identifiers.
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/favourites HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+
+    [13,62,305,...]
+
+== Set current user's favourite activities
+
+To simplify the API, all the user's favourites are set at once. There is no API
+method for marking/unmarking an individual activity. The operation works by
+first deleting all current favourites and then adding the once specified by the
+request.
+
+Request
+
+    PUT http://127.0.0.1:3000/api/v1/favourites HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+    Content-Type: application/json
+
+    {
+        "id": [13,62,305,...]
+    }
+
+Response
+
+    HTTP/1.1 204 No Content
+
+
+== Set a user's rating of an activity
+
+All authenticated users can rate each of the activities. As the examples show, ratings are read/written by GETting,
+POSTing and DELETEing the /api/v1/activities/NNNN/rating resource.
+
+Request to setting current user's rating of activity 1234 to 1:
+
+    POST http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+    {
+    "rating": "1"
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+
+== Remove a user's rating of an activity
+
+Request:
+
+    DELETE http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response:
+
+    HTTP/1.1 204 No Content
+
+== Reading a user's rating of an activity
+
+Request:
+
+    GET http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response:
+
+    HTTP/1.1 200 OK
+    {
+        "rating":1,
+        "created_at":"2015-01-13T18:29:09.013Z"
+    }
