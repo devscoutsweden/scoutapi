@@ -269,45 +269,44 @@ desired attribute in its own attrs[] parameter. Example: attrs[]=name&attrs[]=de
 Show all activities:
 
   GET http://127.0.0.1:3000/api/v1/activities
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show all activities with "water" in their titles:
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show all activities with "water" in title or one of the description fields:
 
   GET http://127.0.0.1:3000/api/v1/activities?text=vatten
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show featured (hand-picked by editor) activities with "person" in description:
 
   GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show activities from certain categories:
 
   GET http://127.0.0.1:3000/api/v1/activities?categories[]=1&categories[]=2
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
   GET http://127.0.0.1:3000/api/v1/activities?categories=1,2
-  Authorization: Token token="4d7a9ae16d0092c35f63"
+
+Show activities which have been rated by at least 10 users:
+
+  GET http://127.0.0.1:3000/api/v1/activities?ratings_count_min=10
+
+Show activities whose average rating is at least 3.5 (out of 5):
+
+  GET http://127.0.0.1:3000/api/v1/activities?ratings_average_min=3.5
 
 Show activities with certain id numbers:
 
   GET http://127.0.0.1:3000/api/v1/activities?id[]=1&id[]=2&id[]=12&id[]=23
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
   GET http://127.0.0.1:3000/api/v1/activities?cid=1,2,12,23
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 
 Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&random=5
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Limit result to the overall favourite activities. This means a list of activities
 sorted by the number of users who have marked them as their favourites. This
@@ -316,12 +315,10 @@ that it is not possible to use it to, for example, show favourites for a particu
 category or age group). The example below will return the top-5 activites:
 
   GET http://127.0.0.1:3000/api/v1/activities?favourites=5
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Show "water" activities suitable for 10-year-old children:
 
   GET http://127.0.0.1:3000/api/v1/activities?name=water&age_1=10
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Searching for activities suitable for people within a certain age range requires
 some explaining. The age_1 and age_2 parameters define an age span which
@@ -435,7 +432,6 @@ Response in case of error
 Request to show the most-recent version of activity 11:
 
   GET http://127.0.0.1:3000/api/v1/activities/11
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Response if successful:
 
@@ -456,7 +452,6 @@ Response if successful:
 Request to show all revisions of activity 11, not just the latest:
 
   GET http://127.0.0.1:3000/api/v1/activities/11?all_versions=true
-  Authorization: Token token="4d7a9ae16d0092c35f63"
 
 Response:
 
@@ -543,7 +538,6 @@ When returing category information, the response contains two additional pieces 
 Request
 
   GET "http://127.0.0.1:3000/api/v1/categories"
-  Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
 
 Response
@@ -756,3 +750,47 @@ Response
 /file
 
 TODO: Write about how media files are fetched, including how they are automatically resized to the requested size.
+
+=== Set a user's rating of an activity
+
+All authenticated users can rate each of the activities. As the examples show, ratings are read/written by GETting,
+POSTing and DELETEing the /api/v1/activities/NNNN/rating resource.
+
+Request to setting current user's rating of activity 1234 to 1:
+
+    POST http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+    {
+    "rating": "1"
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+
+=== Remove a user's rating of an activity
+
+Request:
+
+    DELETE http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response:
+
+    HTTP/1.1 204 No Content
+
+=== Reading a user's rating of an activity
+
+Request:
+
+    GET http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response:
+
+    HTTP/1.1 200 OK
+    {
+        "rating":1,
+        "created_at":"2015-01-13T18:29:09.013Z"
+    }

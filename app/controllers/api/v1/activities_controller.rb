@@ -7,6 +7,10 @@ module Api
       before_action :set_activity, only: [:show, :update, :destroy]
       before_action :init_output_attr_lists, only: [:show, :index, :create]
 
+      ACTIVITY_RATINGS_STATS_SQL = Rating.select('activity_id, count(*) ratings_count, avg(rating) ratings_average').group(:activity_id).to_sql
+
+      ACTIVITY_FAVOURITES_STATS_SQL = FavouriteActivity.select('activity_id, count(*) favourite_count').group(:activity_id).to_sql
+
       def index
         query_conditions = get_find_condition_params
 
@@ -53,14 +57,15 @@ module Api
         end
         if params.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
-          q = q.joins(:categories).where(categories: {id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(','))})
+          categoryIds = params[:categories].is_a?(Array) ? params[:categories].map(&:to_i) : params[:categories].split(',').map(&:to_i)
+          q = q.where("EXISTS (SELECT * FROM activity_versions_categories avc WHERE avc.activity_version_id = activity_versions.id AND avc.category_id IN (?))", categoryIds)
+          #q = q.joins(:categories).where(categories: {id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(','))})
         end
-        if params.has_key?("rating")
-          #TODO: Do we have to define the join here?
-          ratingJoin = Rating.select('activity_id, count(*) ratings_count, avg(rating) ratings_average').group(:activity_id).to_sql
-          q = q.joins("LEFT JOIN (#{ratingJoin}) r ON activity_versions.activity_id = r.activity_id").select('activity_versions.*, r.ratings_count, r.ratings_average')
-
-          q = q.where("r.ratings_count > 0")
+        if query_conditions.has_key?("ratings_count_min")
+          q = q.where("r.ratings_count >= ?", query_conditions[:ratings_count_min].to_i)
+        end
+        if query_conditions.has_key?("ratings_average_min")
+          q = q.where("r.ratings_average >= ?", query_conditions[:ratings_average_min].to_f)
         end
         if query_conditions.has_key?("text")
           q = q.where("activity_versions.name LIKE ? "+
@@ -115,16 +120,18 @@ module Api
         end
         @activityVersions = q;
 
-        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        load_activity_stats(get_activity_ids(@activityVersions))
+        # Copy "query-only aggregates" to their more appropriate "model-only" counter-parts (since ratings and favourites are associated with the activity itself rather than a specific revision of the activity)
+        @activityVersions.each do |v|
+          v.activity.favourite_count = v.favourite_count
+          v.activity.ratings_count = v.ratings_count
+          v.activity.ratings_average = v.ratings_average
+        end
       end
 
       def get_base_search_query()
-        ratingJoin = Rating.select('activity_id, count(*) ratings_count, avg(rating) ratings_average').group(:activity_id).to_sql
-        favouritesJoin = FavouriteActivity.select('activity_id, count(*) favourite_count').group(:activity_id).to_sql
         q = ActivityVersion.
-            joins("LEFT JOIN (#{ratingJoin}) r ON activity_versions.activity_id = r.activity_id").
-            joins("LEFT JOIN (#{favouritesJoin}) f ON activity_versions.activity_id = f.activity_id").
+            joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activity_versions.activity_id = r.activity_id").
+            joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activity_versions.activity_id = f.activity_id").
             select('activity_versions.*, r.ratings_count, r.ratings_average, f.favourite_count')
         q
       end
@@ -141,6 +148,16 @@ module Api
       end
 
       def init_output_attr_lists
+        allowed_activity_attrs = [
+          'id',
+          # ratings_count is a derived/calculated attribute and not something stored in a particular table column.
+          'ratings_count',
+          # ratings_average is a derived/calculated attribute and not something stored in a particular table column.
+          'ratings_average',
+          # favourite_count is a derived/calculated attribute and not something stored in a particular table column.
+          'favourite_count'
+        ]
+
         allowed_activity_version_attrs = [
           'name',
           'descr_introduction',
@@ -158,10 +175,7 @@ module Api
           'time_min',
           'published_at',
           'status',
-          'created_at',
-          'ratings_count',
-          'ratings_average',
-          'favourite_count'
+          'created_at'
         ]
 
         if params.has_key?('attrs') && params[:attrs].is_a?(Array)
@@ -178,27 +192,14 @@ module Api
                     'time_min',
 
                     'categories']
+        elsif params.has_key?('attrs')
+          @attrs = params[:attrs].split(',')
         else
-          @attrs = allowed_activity_version_attrs + ['categories', 'media_files', 'references']
+          @attrs = allowed_activity_attrs + allowed_activity_version_attrs + ['categories', 'media_files', 'references']
         end
 
+        @activity_attrs = @attrs.nil? ? allowed_activity_attrs : @attrs & allowed_activity_attrs
         @activity_version_attrs = @attrs.nil? ? allowed_activity_version_attrs : @attrs & allowed_activity_version_attrs
-      end
-
-      #TODO: load_activity_stats should no longer be necessary
-      def load_activity_stats(ids)
-        @favouritesCount = FavouriteActivity.
-            where(:activity_id => ids).
-            group(:activity_id).
-            count(:user_id)
-        #@ratingsData = Hash.new
-        #Rating.select('activity_id, count(*) count, avg(rating) average').
-        #    where(:activity_id => ids).
-        #    group(:activity_id).each do |r|
-        #  @ratingsData[r.activity_id] = {average: r.average, count: r.count}
-        #end
-        #
-        #Rails.logger.info("@ratingsData: #{@ratingsData}")
       end
 
       # Extracts the activity ids from the activity versions supplied
@@ -212,17 +213,12 @@ module Api
 
       def show
         @all_versions = params.has_key?('all_versions') && params[:all_versions] == 'true'
-        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        load_activity_stats(@activity.id)
         respond_with @activity
       end
 
       def create
         @activity = Activity.new(status: Db::ActivityVersionStatus::PUBLISHED)
         @activity.user = @userApiKey.user
-
-        # Create hash/map of how many users have marked each activity as a favourite. This information is later used by the views.
-        load_activity_stats(@activity.id)
 
         if @activity.save!
           version = ActivityVersion.new(get_activity_version_params)
@@ -250,10 +246,7 @@ module Api
 
           version.save!
 
-          @activityVersion = get_base_search_query.where(id: version.id).take
-
-          #TODO: Refactor back to respond_with instead of @activityVersion
-          #respond_with :api, :v1, @activity, status: :created
+          respond_with :api, :v1, @activity, status: :created
         else
           respond_with @activity.errors, status: :unprocessable_entity
         end
@@ -328,12 +321,21 @@ module Api
       private
 
       def find_activity(id)
-        Activity.
+        a = Activity.
           #joins(:activity_versions).
           #order("activities.id, activity_versions.id DESC").
           #where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).
           #includes(:activity_versions, activity_versions: [:references, :categories]).
+          joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activities.id = r.activity_id").
+          joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activities.id = f.activity_id").
+          select('activities.*, r.ratings_count, r.ratings_average, f.favourite_count').
           find(id)
+
+        # Copy values from "simple result hash" to "proper result attributes", otherwise the public_send method (used in JSON templates) will not work.
+        a.ratings_count = a['ratings_count']
+        a.ratings_average = a['ratings_average']
+        a.favourite_count = a['favourite_count']
+        a
       end
 
       def set_activity
@@ -351,7 +353,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories, :ratings_count_min, :ratings_average_min)
       end
     end
   end

@@ -1,9 +1,7 @@
 revisions ||= @activityVersions
 
 json.array! revisions do |activity_version|
-  #TODO: Refactor back to activity_version instead of @activityVersion
-  @activityVersion = activity_version
-  json.partial! @activityVersion
+  json.partial! activity_version
 end
 #activities ||= @activities
 #
