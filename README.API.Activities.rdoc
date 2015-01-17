@@ -108,6 +108,16 @@ Sample response
     }
   ]
 
+== Returning current user's rating for activities
+
+If the client supplies user credentials, either using a Google id token or an API key, the API will return the user's
+rating for each returned activity.
+
+The rating will be available in the my_rating property.
+
+The my_rating property will always be returned but will be set to null if no credentials have been specified or if the
+current user has not rated the activity.
+
 == Returning limited set of attributes for activities
 
 In order to save bandwidth, it is possible to limit the number of attributes
@@ -299,6 +309,9 @@ Response:
 == Update activity
 
 Request to update activity 11 with new information (will be saved as new revision of activity):
+
+The user's rating for the activity cannot be updated this way. The dedicated /activities/NN/rating resource must be
+invoked for this.
 
   PUT http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
   Authorization: Token token="4d7a9ae16d0092c35f63"

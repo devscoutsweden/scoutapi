@@ -6,7 +6,7 @@ class Activity < ActiveRecord::Base
   #validates :user, presence: true
 
   # Non-persisted attributes used to store derived/calculated activity statistics
-  attr_accessor :favourite_count, :ratings_count, :ratings_average
+  attr_accessor :favourite_count, :ratings_count, :ratings_average, :my_rating
 
   belongs_to :user
   has_many :activity_versions, :dependent => :delete_all

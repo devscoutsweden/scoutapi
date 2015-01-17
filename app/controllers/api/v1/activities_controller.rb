@@ -4,6 +4,7 @@ module Api
     include Db
     class ActivitiesController < ApplicationController
       before_filter :restrict_access_to_api_users, except: [:index, :show]
+      before_filter :restrict_access_to_api_users_if_credentials_supplied, only: [:index, :show]
       before_action :set_activity, only: [:show, :update, :destroy]
       before_action :init_output_attr_lists, only: [:show, :index, :create]
 
@@ -125,15 +126,22 @@ module Api
           v.activity.favourite_count = v.favourite_count
           v.activity.ratings_count = v.ratings_count
           v.activity.ratings_average = v.ratings_average
+          v.activity.my_rating = v.my_rating
         end
       end
 
       def get_base_search_query()
+        select = 'activity_versions.*, r.ratings_count, r.ratings_average, f.favourite_count'
         q = ActivityVersion.
             joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activity_versions.activity_id = r.activity_id").
-            joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activity_versions.activity_id = f.activity_id").
-            select('activity_versions.*, r.ratings_count, r.ratings_average, f.favourite_count')
-        q
+            joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activity_versions.activity_id = f.activity_id")
+        if @userApiKey
+          q = q.joins("LEFT JOIN ratings my_ratings ON activity_versions.activity_id = my_ratings.activity_id AND my_ratings.user_id = " + @userApiKey.user_id.to_s)
+          select += ', my_ratings.rating my_rating'
+        else
+          select += ', null my_rating'
+        end
+        q = q.select(select)
       end
 
       def get_final_search_query(q)
@@ -155,7 +163,8 @@ module Api
           # ratings_average is a derived/calculated attribute and not something stored in a particular table column.
           'ratings_average',
           # favourite_count is a derived/calculated attribute and not something stored in a particular table column.
-          'favourite_count'
+          'favourite_count',
+          'my_rating'
         ]
 
         allowed_activity_version_attrs = [
@@ -327,14 +336,22 @@ module Api
           #where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).
           #includes(:activity_versions, activity_versions: [:references, :categories]).
           joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activities.id = r.activity_id").
-          joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activities.id = f.activity_id").
-          select('activities.*, r.ratings_count, r.ratings_average, f.favourite_count').
-          find(id)
+          joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activities.id = f.activity_id")
+
+        select = 'activities.*, r.ratings_count, r.ratings_average, f.favourite_count'
+        if @userApiKey
+          a = a.joins("LEFT JOIN ratings my_ratings ON activities.id = my_ratings.activity_id AND my_ratings.user_id = " + @userApiKey.user_id.to_s)
+          select += ', my_ratings.rating my_rating'
+        else
+          select += ', null my_rating'
+        end
+        a = a.select(select).find(id)
 
         # Copy values from "simple result hash" to "proper result attributes", otherwise the public_send method (used in JSON templates) will not work.
         a.ratings_count = a['ratings_count']
         a.ratings_average = a['ratings_average']
         a.favourite_count = a['favourite_count']
+        a.my_rating = a['my_rating']
         a
       end
 

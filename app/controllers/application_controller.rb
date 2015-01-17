@@ -21,6 +21,10 @@ class ApplicationController < ActionController::Base
 
   HTTP_HEADER_APIKEY = 'X-ScoutAPI-APIKey'
 
+  def restrict_access_to_api_users_if_credentials_supplied
+    restrict_access_to_api_users if request.authorization
+  end
+
   def restrict_access_to_api_users
     authenticate_or_request_with_http_token do |token, options|
       Rails.logger.info("restrict_access_to_api_users: #{token} #{options}")
