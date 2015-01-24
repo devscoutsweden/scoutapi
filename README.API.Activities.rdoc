@@ -34,8 +34,11 @@ Show activities with certain id numbers:
 
   GET http://127.0.0.1:3000/api/v1/activities?id[]=1&id[]=2&id[]=12&id[]=23
 
-  GET http://127.0.0.1:3000/api/v1/activities?cid=1,2,12,23
+  GET http://127.0.0.1:3000/api/v1/activities?id=1,2,12,23
 
+Limit result to activities which the current user (as determined by API key) has marked as favourites:
+
+  GET http://127.0.0.1:3000/api/v1/activities?my_favourites=true
 
 Limit result to a number of random activities matching the conditions (this
 example will return five random activites with the word "water" in the title):

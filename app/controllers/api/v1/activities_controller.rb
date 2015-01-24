@@ -15,7 +15,11 @@ module Api
       def index
         query_conditions = get_find_condition_params
 
-        q = get_base_search_query
+        if query_conditions.has_key?("my_favourites") && query_conditions[:my_favourites] != 'false'
+          onlyPersonalFavourites = true
+        end
+
+        q = get_base_search_query(onlyPersonalFavourites)
         q = q.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
@@ -105,7 +109,7 @@ module Api
           ids = q.pluck(:id).sample(query_conditions["random"].to_i)
 
           # Retrieve data for the activities with the randomly selected ids. Reuse the "q" variable to simplify coding.
-          q = get_final_search_query(get_base_search_query).find(ids);
+          q = get_final_search_query(get_base_search_query(onlyPersonalFavourites)).find(ids);
         elsif query_conditions.has_key?("favourites")
           favourites = FavouriteActivity.
             group(:activity_id).
@@ -115,7 +119,7 @@ module Api
 
           ids = sorted.map { |item| item[0] }.take(query_conditions["favourites"].to_i)
 
-          q = get_final_search_query(get_base_search_query.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).where(:activity_id => ids));
+          q = get_final_search_query(get_base_search_query(onlyPersonalFavourites).where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).where(:activity_id => ids));
         else
           q = get_final_search_query(q)
         end
@@ -130,7 +134,7 @@ module Api
         end
       end
 
-      def get_base_search_query()
+      def get_base_search_query(onlyPersonalFavourites = false)
         select = 'activity_versions.*, r.ratings_count, r.ratings_average, f.favourite_count'
         q = ActivityVersion.
             joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activity_versions.activity_id = r.activity_id").
@@ -140,6 +144,9 @@ module Api
           select += ', my_ratings.rating my_rating'
         else
           select += ', null my_rating'
+        end
+        if @userApiKey && onlyPersonalFavourites
+          q = q.joins("JOIN favourite_activities my_favs ON activity_versions.activity_id = my_favs.activity_id AND my_favs.user_id = " + @userApiKey.user_id.to_s)
         end
         q = q.select(select)
       end
@@ -370,7 +377,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories, :ratings_count_min, :ratings_average_min)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories, :ratings_count_min, :ratings_average_min, :my_favourites)
       end
     end
   end
