@@ -46,6 +46,7 @@ Request to setting current user's rating of activity 1234 to 1:
 
     POST http://127.0.0.1:3000/api/v1/activities/1234/rating HTTP/1.1
     Authorization: Token token="d3474c8aad6528cabd3f"
+    Content-Type: application/json
 
     {
     "rating": "1"
