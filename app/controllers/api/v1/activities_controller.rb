@@ -67,7 +67,7 @@ module Api
         end
 
         if query_conditions.has_key?("name")
-          q = q.where("activity_versions.name LIKE ?", "%#{query_conditions[:name]}%")
+          q = q.where("LOWER(activity_versions.name) LIKE ?", "%#{query_conditions[:name].mb_chars.downcase.to_s}%")
         end
         if query_conditions.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
@@ -82,26 +82,26 @@ module Api
           q = q.where("r.ratings_average >= ?", query_conditions[:ratings_average_min].to_f)
         end
         if query_conditions.has_key?("text")
-          q = q.where("activity_versions.name LIKE ? "+
+          q = q.where("LOWER(activity_versions.name) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_introduction LIKE ? "+
+                          "LOWER(activity_versions.descr_introduction) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_main LIKE ? "+
+                          "LOWER(activity_versions.descr_main) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_material LIKE ? "+
+                          "LOWER(activity_versions.descr_material) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_notes LIKE ? "+
+                          "LOWER(activity_versions.descr_notes) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_prepare LIKE ? "+
+                          "LOWER(activity_versions.descr_prepare) LIKE ? "+
                           "OR " +
-                          "activity_versions.descr_safety LIKE ?",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%",
-                      "%#{query_conditions[:text]}%")
+                          "LOWER(activity_versions.descr_safety) LIKE ?",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
+                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%")
         end
 
         if query_conditions.has_key?("random")
