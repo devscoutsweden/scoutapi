@@ -108,3 +108,15 @@ Response if error occurred (example when category does not exist)
 /file
 
 TODO: Write about how media files are fetched, including how they are automatically resized to the requested size.
+
+== Ping
+
+The API has a "ping feature" which enables external systems to poll whether or not the API is online.
+
+Request:
+
+    GET http://127.0.0.1:3000/api/v1/system/ping HTTP/1.1
+
+Response:
+
+    HTTP/1.1 204 No Content
