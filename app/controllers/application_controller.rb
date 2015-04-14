@@ -93,6 +93,10 @@ class ApplicationController < ActionController::Base
     render_error error, 'Access to this URL is denied', :forbidden
   end
 
+  def error_unauthorized(error)
+    render_error error, 'You must provide credentials in order to perform the search/operation', :unauthorized
+  end
+
   def error_record_not_unique(error)
     render_error error, 'The input values conflict with another object. Perhaps the name is already taken?', :unprocessable_entity
   end
