@@ -7,4 +7,5 @@ class User < ActiveRecord::Base
   has_many :favourites, :through => :favourite_activities, :source => :activity
   has_many :ratings, :dependent => :delete_all
   has_many :activity_versions
+  has_many :activity_relations
 end

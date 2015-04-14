@@ -6,6 +6,8 @@ Scoutapi::Application.routes.draw do
         get 'rating', to: 'ratings#show'
         post 'rating', to: 'ratings#create'
         delete 'rating', to: 'ratings#destroy'
+        post 'related/auto_generated', to: 'related_activities#set_auto_generated'
+        resources :related, controller: 'related_activities', only: [:index, :create, :destroy]
       end
       resources :references, only: [:index, :show, :create, :update, :destroy]
       resources :media_files, only: [:index, :show, :create, :update, :destroy] do
@@ -17,6 +19,7 @@ Scoutapi::Application.routes.draw do
       get 'all_api_keys', to: 'users#all_api_keys'
       get 'favourites', to: 'favourites#index'
       put 'favourites', to: 'favourites#update'
+      get 'system/ping', to: 'system#ping'
     end
   end
   # The priority is based upon order of creation: first created -> highest priority.

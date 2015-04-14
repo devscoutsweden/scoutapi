@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141030160650) do
+ActiveRecord::Schema.define(version: 20150406073147) do
 
   create_table "activities", force: true do |t|
     t.integer  "status"
@@ -21,6 +21,16 @@ ActiveRecord::Schema.define(version: 20141030160650) do
   end
 
   add_index "activities", ["user_id"], name: "index_activities_on_user_id"
+
+  create_table "activity_relations", force: true do |t|
+    t.integer "activity_id",         null: false
+    t.integer "related_activity_id", null: false
+    t.boolean "is_auto_generated",   null: false
+    t.integer "owner_id",            null: false
+  end
+
+  add_index "activity_relations", ["activity_id", "related_activity_id"], name: "activity_relations_unique", unique: true
+  add_index "activity_relations", ["owner_id"], name: "activity_relations_owner_id"
 
   create_table "activity_versions", force: true do |t|
     t.integer  "status"

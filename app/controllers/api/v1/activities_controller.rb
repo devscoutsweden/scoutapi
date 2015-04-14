@@ -15,6 +15,15 @@ module Api
       def index
         query_conditions = get_find_condition_params
 
+        if @userApiKey.nil? && query_conditions.has_key?('my_favourites')
+          error_unauthorized('You cannot search for your personal favourites when you have not provided any authentication credentials')
+          return
+        end
+        if query_conditions.empty?
+          error_record_has_invalid_data('You must specify at least one search condition')
+          return
+        end
+
         if query_conditions.has_key?("my_favourites") && query_conditions[:my_favourites] != 'false'
           onlyPersonalFavourites = true
         end
@@ -26,8 +35,8 @@ module Api
           q = q.where(featured: query_conditions[:featured] == "true")
         end
 
-        if params.has_key?("id")
-          q = q.where(activity_id: (params[:id].is_a?(Array) ? params[:id] : params[:id].split(',')))
+        if query_conditions.has_key?("id")
+          q = q.where(activity_id: (query_conditions[:id].is_a?(Array) ? query_conditions[:id] : query_conditions[:id].split(',')))
         end
 
         if query_conditions.has_key?("age_1")
@@ -60,9 +69,9 @@ module Api
         if query_conditions.has_key?("name")
           q = q.where("activity_versions.name LIKE ?", "%#{query_conditions[:name]}%")
         end
-        if params.has_key?("categories")
+        if query_conditions.has_key?("categories")
           # The "joins" may not be necessary. The below "includes" may be necessary.
-          categoryIds = params[:categories].is_a?(Array) ? params[:categories].map(&:to_i) : params[:categories].split(',').map(&:to_i)
+          categoryIds = query_conditions[:categories].is_a?(Array) ? query_conditions[:categories].map(&:to_i) : query_conditions[:categories].split(',').map(&:to_i)
           q = q.where("EXISTS (SELECT * FROM activity_versions_categories avc WHERE avc.activity_version_id = activity_versions.id AND avc.category_id IN (?))", categoryIds)
           #q = q.joins(:categories).where(categories: {id: (params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(','))})
         end
@@ -74,18 +83,18 @@ module Api
         end
         if query_conditions.has_key?("text")
           q = q.where("activity_versions.name LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_introduction LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_main LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_material LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_notes LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_prepare LIKE ? "+
-                        "OR " +
-                        "activity_versions.descr_safety LIKE ?",
+                          "OR " +
+                          "activity_versions.descr_introduction LIKE ? "+
+                          "OR " +
+                          "activity_versions.descr_main LIKE ? "+
+                          "OR " +
+                          "activity_versions.descr_material LIKE ? "+
+                          "OR " +
+                          "activity_versions.descr_notes LIKE ? "+
+                          "OR " +
+                          "activity_versions.descr_prepare LIKE ? "+
+                          "OR " +
+                          "activity_versions.descr_safety LIKE ?",
                       "%#{query_conditions[:text]}%",
                       "%#{query_conditions[:text]}%",
                       "%#{query_conditions[:text]}%",
@@ -112,8 +121,8 @@ module Api
           q = get_final_search_query(get_base_search_query(onlyPersonalFavourites)).find(ids);
         elsif query_conditions.has_key?("favourites")
           favourites = FavouriteActivity.
-            group(:activity_id).
-            count(:user_id)
+              group(:activity_id).
+              count(:user_id)
 
           sorted = favourites.sort_by { |k, v| -v }
 
@@ -131,6 +140,42 @@ module Api
           v.activity.ratings_count = v.ratings_count
           v.activity.ratings_average = v.ratings_average
           v.activity.my_rating = v.my_rating
+        end
+
+        # Returning JSON (the default behaviour) is handed off to the default Rails view mechanism.
+        # Returning XML is explicitly handled by ActiveRecord's to_xml method. The output is customized for "the client which calculates activity relationships".
+        respond_to do |format|
+          format.json
+          format.xml {
+            render xml: @activityVersions.to_xml(
+                root: 'activity',
+                camelize: false,
+                dasherize: false,
+                skip_types: true,
+                only: [
+                    :id,
+                    :name,
+                    :descr_material,
+                    :descr_introduction,
+                    :descr_main,
+                    :descr_safety,
+                    :descr_notes,
+                    :age_min,
+                    :age_max,
+                    :participants_min,
+                    :participants_max,
+                    :time_min,
+                    :time_max,
+                    :featured,
+                    :activity_id
+                ],
+                include: {
+                    categories: {
+                        only: [:id]
+                    }
+                }
+            )
+          }
         end
       end
 
@@ -152,46 +197,62 @@ module Api
       end
 
       def get_final_search_query(q)
-        if !@attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
+        if !@attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references') && !@attrs.include?('related')
+          # Client doesn't want neither categories, media files, references nor relations.
           q = q.includes(:activity)
-        elsif @attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references')
+        elsif @attrs.include?('categories') && !@attrs.include?('media_files') && !@attrs.include?('references') && !@attrs.include?('related')
+          # Client wants categories but not media files, references or relations.
           q = q.includes(:activity, :categories)
         else
-          q = q.includes(:activity, :categories, :media_files, :references)
+          # Client gets all information, even if client does not need it.
+          q = q.includes(
+              :activity,
+              :categories,
+              :media_files,
+              :references,
+
+              # Include :activity => :activity_relations instead of :activity => :relations since the former avoids
+              # loading the actual related activities and instead only loads the *association* table entries (not also
+              # the *associated activity* table entries). This optimization is only possible because the view,
+              # _activity_version.json.jbuilder, only returns "activity.activity_relations.related_activity_id" instead
+              # of "activity.relations.id" (the former needs only the activity_relations table, the latter needs both
+              # the activity_relations table and the activities table)
+              :activity => :activity_relations
+          )
         end
         q.order(:activity_id, :id)
       end
 
       def init_output_attr_lists
         allowed_activity_attrs = [
-          'id',
-          # ratings_count is a derived/calculated attribute and not something stored in a particular table column.
-          'ratings_count',
-          # ratings_average is a derived/calculated attribute and not something stored in a particular table column.
-          'ratings_average',
-          # favourite_count is a derived/calculated attribute and not something stored in a particular table column.
-          'favourite_count',
-          'my_rating'
+            'id',
+            # ratings_count is a derived/calculated attribute and not something stored in a particular table column.
+            'ratings_count',
+            # ratings_average is a derived/calculated attribute and not something stored in a particular table column.
+            'ratings_average',
+            # favourite_count is a derived/calculated attribute and not something stored in a particular table column.
+            'favourite_count',
+            'my_rating'
         ]
 
         allowed_activity_version_attrs = [
-          'name',
-          'descr_introduction',
-          'descr_main',
-          'descr_material',
-          'descr_notes',
-          'descr_prepare',
-          'descr_safety',
-          'featured',
-          'age_max',
-          'age_min',
-          'participants_max',
-          'participants_min',
-          'time_max',
-          'time_min',
-          'published_at',
-          'status',
-          'created_at'
+            'name',
+            'descr_introduction',
+            'descr_main',
+            'descr_material',
+            'descr_notes',
+            'descr_prepare',
+            'descr_safety',
+            'featured',
+            'age_max',
+            'age_min',
+            'participants_max',
+            'participants_min',
+            'time_max',
+            'time_min',
+            'published_at',
+            'status',
+            'created_at'
         ]
 
         if params.has_key?('attrs') && params[:attrs].is_a?(Array)
@@ -211,7 +272,7 @@ module Api
         elsif params.has_key?('attrs')
           @attrs = params[:attrs].split(',')
         else
-          @attrs = allowed_activity_attrs + allowed_activity_version_attrs + ['categories', 'media_files', 'references']
+          @attrs = allowed_activity_attrs + allowed_activity_version_attrs + ['categories', 'media_files', 'references', 'related']
         end
 
         @activity_attrs = @attrs.nil? ? allowed_activity_attrs : @attrs & allowed_activity_attrs
@@ -271,7 +332,7 @@ module Api
       def get_or_create_media_file(uri)
         file = MediaFile.find_by_uri(uri)
         if file.nil?
-          file = MediaFile.new({ :uri => uri })
+          file = MediaFile.new({:uri => uri})
         end
         file
       end
@@ -338,12 +399,12 @@ module Api
 
       def find_activity(id)
         a = Activity.
-          #joins(:activity_versions).
-          #order("activities.id, activity_versions.id DESC").
-          #where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).
-          #includes(:activity_versions, activity_versions: [:references, :categories]).
-          joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activities.id = r.activity_id").
-          joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activities.id = f.activity_id")
+            #joins(:activity_versions).
+            #order("activities.id, activity_versions.id DESC").
+            #where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED).
+            #includes(:activity_versions, activity_versions: [:references, :categories]).
+            joins("LEFT JOIN (#{ACTIVITY_RATINGS_STATS_SQL}) r ON activities.id = r.activity_id").
+            joins("LEFT JOIN (#{ACTIVITY_FAVOURITES_STATS_SQL}) f ON activities.id = f.activity_id")
 
         select = 'activities.*, r.ratings_count, r.ratings_average, f.favourite_count'
         if @userApiKey
@@ -377,7 +438,7 @@ module Api
       end
 
       def get_find_condition_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories, :ratings_count_min, :ratings_average_min, :my_favourites)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_1, :age_2, :participants_1, :participants_2, :time_1, :time_2, :featured, :text, :random, :favourites, :categories, :ratings_count_min, :ratings_average_min, :my_favourites, :id)
       end
     end
   end

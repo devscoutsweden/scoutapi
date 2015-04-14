@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  activity_1: 
+  activity_2: 
+  is_auto_generated: false
+  owner: 
+
+two:
+  activity_1: 
+  activity_2: 
+  is_auto_generated: false
+  owner: 

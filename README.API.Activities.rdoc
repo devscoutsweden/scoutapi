@@ -198,8 +198,135 @@ desired attribute in its own attrs[] parameter. Example: attrs[]=name&attrs[]=de
           ...
        ],
        "media_files": [],
-       "references": []
+       "references": [],
+       "related": [
+          {"related_activity_id": 2},
+          {"related_activity_id": 3},
+          {"related_activity_id": 4},
+          {"related_activity_id": 5}
+       ]
     }
+
+== Returning activities in XML format
+
+By default, the API returns data as JSON. This is also the only format available to API clients which needs a custom
+set of attributes returned for each activity. However, clients preferring XML over JSON do still have one option for
+satisfying their needs:
+
+By requesting http://127.0.0.1:3000/api/v1/activities.xml instead of GET http://127.0.0.1:3000/api/v1/activities (no ".xml" ending), the client will receive an XML-formatted response instead of an JSON-formatted one.
+
+    GET http://127.0.0.1:3000/api/v1/activities.xml?id=1 HTTP/1.1
+    <activity>
+       <activity>
+          <id>159</id>
+          <name>Updated Test Activity 6</name>
+          <descr_material>Rope, ...</descr_material>
+          <descr_introduction nil="true"/>
+          <descr_main>This is how you do...</descr_main>
+          <descr_safety>It is important not to...</descr_safety>
+          <descr_notes>Remember to...</descr_notes>
+          <age_min>19</age_min>
+          <age_max>25</age_max>
+          <participants_min>5</participants_min>
+          <participants_max>10</participants_max>
+          <time_min>30</time_min>
+          <time_max>60</time_max>
+          <featured nil="true"/>
+          <activity_id>1</activity_id>
+          <categories>
+             <category>
+                <id>1</id>
+             </category>
+             <category>
+                <id>3</id>
+             </category>
+             <category>
+                <id>4</id>
+             </category>
+             <category>
+                <id>5</id>
+             </category>
+             <category>
+                <id>6</id>
+             </category>
+          </categories>
+       </activity>
+    </activity>
+
+The XML representation cannot be customized in any way. What you get is what you get. The feature was originally
+implemented to support the "calculate related activities client" and that client only needed the attributes shown
+in the sample XML response shown here above.
+
+By comparison, this is what would have been returned without the ".xml" ending:
+
+    GET http://127.0.0.1:3000/api/v1/activities?id=1 HTTP/1.1
+    [{
+       "id": 1,
+       "revision_id": 159,
+       "ratings_count": 2,
+       "ratings_average": 1.5,
+       "favourite_count": 1,
+       "my_rating": 2,
+       "name": "Updated Test Activity 6",
+       "descr_introduction": null,
+       "descr_main": "This is how you do...",
+       "descr_material": "Rope, ...",
+       "descr_notes": "Remember to...",
+       "descr_prepare": "Before you start, ensure that...",
+       "descr_safety": "It is important not to...",
+       "featured": null,
+       "age_max": 25,
+       "age_min": 19,
+       "participants_max": 10,
+       "participants_min": 5,
+       "time_max": 60,
+       "time_min": 30,
+       "published_at": null,
+       "status": 3,
+       "created_at": "2015-01-17T11:26:02.005Z",
+       "categories":    [
+                {
+             "id": 1,
+             "group": "Lilla Scoutboken",
+             "name": "Lekar",
+             "updated_at": "2014-09-06T07:49:40.563Z"
+          },
+                {
+             "id": 3,
+             "group": "scout-concept",
+             "name": "Andakt, stilla stund",
+             "updated_at": "2014-09-06T07:49:41.384Z"
+          },
+                {
+             "id": 4,
+             "group": "scout-concept",
+             "name": "Ceremonier",
+             "updated_at": "2014-09-06T07:49:41.392Z"
+          },
+                {
+             "id": 5,
+             "group": "scout-method",
+             "name": "Symboler och ceremonier",
+             "updated_at": "2014-09-06T07:49:41.455Z"
+          },
+                {
+             "id": 6,
+             "group": "scout-method",
+             "name": "Patrullen",
+             "updated_at": "2014-09-06T07:49:41.463Z"
+          }
+       ],
+       "media_files": [],
+       "references": [],
+       "related":    [
+         {"related_activity_id": 2},
+         {"related_activity_id": 3},
+         {"related_activity_id": 4},
+         {"related_activity_id": 5}
+       ]
+    }]
+
+As you can see, the default JSON representation contains more detailed information than the XML representation.
 
 == Create activity
 

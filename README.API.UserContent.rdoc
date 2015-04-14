@@ -81,3 +81,149 @@ Response:
         "rating":1,
         "created_at":"2015-01-13T18:29:09.013Z"
     }
+
+== Related Activities
+
+Each activity can be associated with any number of other activities. The purpose is to let users find activities similar
+to the one currently being viewed. This accomplished two important things: (1) it lets users discover new activities
+which they may not have found on their own and (2) it allows the administrators to find duplicate activities.
+
+The API allows all users to create a relation between two activities but mind you that a relation is uni-directional,
+meaning that clients should add one relation activity 1 -> 2 and one 2 -> 1.
+
+In order to differentiate between auto-generated and user-generated relations, there is an API flag called is_auto_generated and it should be set to "false" for all relations created by an actual users. The reason is that auto-generated activities may be removed at any time (see below).
+
+== Getting list of related activities
+
+Request:
+
+    GET http://127.0.0.1:3000/api/v1/activities/1/related HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+
+Response:
+
+    HTTP/1.1 200 OK
+    [
+       {
+          "id": 9,
+          "activity_id": 1,
+          "related_activity_id": 2,
+          "is_auto_generated": true
+       },
+          {
+          "id": 10,
+          "activity_id": 1,
+          "related_activity_id": 3,
+          "is_auto_generated": true
+       },
+          {
+          "id": 4,
+          "activity_id": 1,
+          "related_activity_id": 4,
+          "is_auto_generated": false
+       },
+          {
+          "id": 4781,
+          "activity_id": 1,
+          "related_activity_id": 5,
+          "is_auto_generated": false
+       }
+    ]
+
+== Setting that two activities are related/similar
+
+These two requests create a bi-directional relation/association between activity 1 and 2. Two requests are necessary
+since a relation is uni-directional, not bi-directional.
+
+Note: An activity's relations with is_auto_generated=true are automatically deleted when the "set auto-generated
+relations" feature is invoked for said activity (see farther below in this document).
+
+Request:
+
+    POST http://127.0.0.1:3000/api/v1/activities/1/related HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+    {
+        "related_activity_id": 2,
+        "is_auto_generated": false
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+    {
+       "id": 5843,
+       "activity_id": 1,
+       "related_activity_id": 2,
+       "is_auto_generated": false
+    }
+
+Request:
+
+    POST http://127.0.0.1:3000/api/v1/activities/2/related HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+    {
+        "related_activity_id": 1,
+        "is_auto_generated": false
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+    {
+       "id": 5843,
+       "activity_id": 2,
+       "related_activity_id": 1,
+       "is_auto_generated": false
+    }
+
+== Removing association between two activities
+
+These two requests removes the bi-directional relation/association between activity 1 and 2. Note that both requests
+are necessary since a single relation is uni-directional. Also note the relation ids at the end of the URLs (they are
+returned by the "GET http://127.0.0.1:3000/api/v1/activities/1/related" resource).
+
+Request:
+
+    DELETE http://127.0.0.1:3000/api/v1/activities/1/related/5843 HTTP/1.1
+
+Response:
+
+    HTTP/1.1 204 No Content
+
+Request:
+
+    DELETE http://127.0.0.1:3000/api/v1/activities/2/related/5844 HTTP/1.1
+
+Response:
+
+    HTTP/1.1 204 No Content
+
+
+== Replace all auto-generated associations for an activity
+
+The system differentiates between user-generated and auto-generated relationships. User-generated are considered to be
+of "higher quality" and are therefore treated as any other user-generated content, meaning that it is saved or
+deleted by explicitly saving or deleting it. Ihe relationship will only be altered via "direct manipulation".
+
+Auto-generated relationships, on the other hand, are considered to be "volatile" in the sense that all such
+relationships between two activities are usually "set in batches" rather than "added/removed individually". The purpose
+is to allow "indexing clients" to analyze batches of activities and, for each activity, replace all existing
+(auto-generated) relationships with new ones.
+
+This sample request shown below will make two things happen:
+1. Remove all existing auto-generated relations for activity 1 (i.e. its relations with is_auto_generated=true)
+2. Define that activity 1 is related to activity 2 and 3. Activity 2 and 3 are unaffected by this operation since
+   associations (relations) are uni-directional. Users looking at any of those activities will not see activity 1 as a
+   related activity.
+
+Request:
+
+    POST http://127.0.0.1:3000/api/v1/activities/1/related/auto_generated HTTP/1.1
+    Authorization: Token token="d3474c8aad6528cabd3f"
+    {
+    	"related_activity_ids":[2,3]
+    }
+
+Response:
+
+    HTTP/1.1 204 No Content
