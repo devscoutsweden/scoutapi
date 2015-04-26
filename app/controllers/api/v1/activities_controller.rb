@@ -232,7 +232,9 @@ module Api
             'ratings_average',
             # favourite_count is a derived/calculated attribute and not something stored in a particular table column.
             'favourite_count',
-            'my_rating'
+            'my_rating',
+            'updated_at',
+            'created_at'
         ]
 
         allowed_activity_version_attrs = [
@@ -252,6 +254,7 @@ module Api
             'time_min',
             'published_at',
             'status',
+            'updated_at',
             'created_at'
         ]
 
