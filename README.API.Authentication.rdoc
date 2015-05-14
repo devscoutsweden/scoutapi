@@ -247,6 +247,15 @@ A new user is automatically created when a Google user provides a Google authent
 
 Currently not supported.
 
+== Creating first administrator
+
+The only way of creating an administrator when there are no pre-existing adminsitrators is to update the database manually.
+
+1. Create the user by connecting to the API using a Google id token. The user will be automatically created.
+2. Connect to the database using the database tool of your choice.
+3. Find the user's row in the users table.
+4. Set the role value to 20, or whatever level the API implementation maps to the administrator role.
+
 == Show all users and their API keys (only in development mode)
 
 Request
