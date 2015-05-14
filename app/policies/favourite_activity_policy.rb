@@ -1,4 +1,4 @@
-class FavouritePolicy < ApplicationPolicy
+class FavouriteActivityPolicy < ApplicationPolicy
 
   # No special permission needed to view personal favourites
   def index?
