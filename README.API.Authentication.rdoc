@@ -39,7 +39,7 @@ specified, or if it is incorrect:
 
     HTTP Token: Access denied.
 
-== Roles and Permissions ==
+== Roles and Permissions
 
 The API uses a role-based mechanism for determining what operations a user may perform.
 
@@ -67,7 +67,7 @@ Effects of sample roles and permissions:
 * Administrators may delete activities (20 >= 15)
 * Moderators may NOT delete activities (10 < 15)
 
-=== Show all roles and permissions ===
+=== Show all roles and permissions
 
 Clients may retrieve a list of all roles and permissions available in the system.
 
@@ -104,14 +104,14 @@ Response
        }
     }
 
-=== Assign role ===
+=== Assign role
 
 If a user is permitted to edit other users, the user may only grant other users his/her own role, or a lesser role.
 Simply put, a moderator can not make himself an administrator but can technically reduce himself to a regular user.
 
 Roles are assigned by updating the user object (there is no dedicated operation for assigning roles). See below.
 
-=== Attempting to perform operation which user is not authorized to perform ===
+=== Attempting to perform operation which user is not authorized to perform
 
 The API will return a 403 Forbidden if a user tries to perform an operation which he/she does not have permission to
 perform, as determined by the user's role.
@@ -153,7 +153,7 @@ Response
        "keys": [{"key": "664a2072e2"}]
     }
 
-== Search for users ==
+== Search for users
 
 Search for users by GETting the /users resource. Since there may be thousands of users in the system, it is possible to
 filter based on name, e-mail address and role.
@@ -198,7 +198,7 @@ Response example:
        ...
     ]
 
-== Display single user ==
+== Display single user
 
 Request:
 
@@ -217,7 +217,7 @@ Response:
        "role": "user"
     }
 
-== Update user ==
+== Update user
 
 The role of the updated user is automatically reduced to the API user's role, in case API user tries to give the updated
 user more permission than granted to the API user.
@@ -237,13 +237,13 @@ Response
 
     HTTP/1.1 204 No Content
 
-== Create new user ==
+== Create new user
 
 Users can not be explicitly created.
 
 A new user is automatically created when a Google user provides a Google authentication token for the first time.
 
-== Delete user ==
+== Delete user
 
 Currently not supported.
 

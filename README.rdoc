@@ -47,9 +47,9 @@ Please feel free to use a different markup language if you do not plan to run
 
 4. Migrate database and install dependencies
 
-    devscout@test:~/rails-apps/scoutapi$ bin/rake db:migrate
-
     devscout@test:~/rails-apps/scoutapi$ bundle install
+
+    devscout@test:~/rails-apps/scoutapi$ bin/rake db:migrate
 
 5. Start application in development mode (first option) or test mode (second option)
 
