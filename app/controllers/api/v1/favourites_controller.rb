@@ -4,11 +4,13 @@ module Api
       before_filter :restrict_access_to_api_users
 
       def index
+        authorize FavouriteActivity
         favourites = @userApiKey.user.favourite_activities.pluck(:activity_id)
         respond_with favourites
       end
 
       def update
+        authorize FavouriteActivity
         user = @userApiKey.user
 
         # Start be deleting the user's current favourites...

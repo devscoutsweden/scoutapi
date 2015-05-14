@@ -8,6 +8,7 @@ module Api
       before_action :load_usage_count, only: [:index, :show]
 
       def index
+        authorize Category
         @categories = Category.all.includes(:media_file).order(:group => :asc, :name => :asc)
         respond_with @categories
       end
@@ -21,6 +22,7 @@ module Api
       end
 
       def create
+        authorize Category
         @category = Category.new(validated_params)
         @category.user = @userApiKey.user
         @category.media_file = get_or_create_media_file()
@@ -32,10 +34,12 @@ module Api
       end
 
       def show
+        authorize @category
         respond_with @category
       end
 
       def update
+        authorize @category
         @category.media_file = get_or_create_media_file()
         if @category.update(validated_params)
           head :no_content
@@ -59,6 +63,7 @@ module Api
       end
 
       def destroy
+        authorize @category
         if @category.destroy
           head :no_content
         else

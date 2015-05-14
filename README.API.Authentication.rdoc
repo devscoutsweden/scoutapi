@@ -39,6 +39,89 @@ specified, or if it is incorrect:
 
     HTTP Token: Access denied.
 
+== Roles and Permissions ==
+
+The API uses a role-based mechanism for determining what operations a user may perform.
+
+The rules:
+
+* Each user has exactly one role, e.g. moderator or administrator.
+* Each role has one or more permissions.
+* Each role has a level and roles inherit permissions from the roles with a lower level.
+* Access to an API operation is granted based on the permissions of to the user's role.
+
+Technically, a role is expressed as a "numeric level". That "role level number" is then mapped to a descriptive name.
+Permissions are then granted based on the "role level".
+
+Sample roles and permissions:
+
+* The moderator role has level 10.
+* The administrator role has level 20.
+* The permission to edit activities requires level 10.
+* The permission to delete activities requires level 15.
+
+Effects of sample roles and permissions:
+
+* Administrators may edit activities (20 >= 10)
+* Moderators may edit activities (10 >= 10)
+* Administrators may delete activities (20 >= 15)
+* Moderators may NOT delete activities (10 < 15)
+
+=== Show all roles and permissions ===
+
+Clients may retrieve a list of all roles and permissions available in the system.
+
+Each role is associated with a level (an integer), which is used to determine a role's different permissions. A role has
+all the permissions with a level less than or equal to the role's level.
+
+In the example below:
+
+* the administrator role (level 20) can do everything since its no permission requires a higher level than 20.
+* the moderator role (level 10) can do everything but edit users (which requires level 20).
+* levels can be negative
+
+Request
+
+    GET http://127.0.0.1:3000/api/v1/system/roles HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Response
+
+    {
+       "permission_levels":    {
+          "system_message_read": -1,
+          "comment_create": 0,
+          "activity_create": 0,
+          "activity_edit_own": 0,
+          "activity_edit": 10,
+          "users_edit": 20
+       },
+       "role_levels":    {
+          "limited_user": -1,
+          "user": 0,
+          "moderator": 10,
+          "administrator": 20
+       }
+    }
+
+=== Assign role ===
+
+If a user is permitted to edit other users, the user may only grant other users his/her own role, or a lesser role.
+Simply put, a moderator can not make himself an administrator but can technically reduce himself to a regular user.
+
+Roles are assigned by updating the user object (there is no dedicated operation for assigning roles). See below.
+
+=== Attempting to perform operation which user is not authorized to perform ===
+
+The API will return a 403 Forbidden if a user tries to perform an operation which he/she does not have permission to
+perform, as determined by the user's role.
+
+    HTTP/1.1 403 Forbidden
+    {
+        "error":"You are not authorized",
+        "details":"Your role does not grant you permission to this operation"
+    }
+
 == Show current user's profile
 
 Request
@@ -51,11 +134,118 @@ Response
     HTTP/1.1 200 OK
     Content-Type: application/json; charset=utf-8
     {
-        "email": "USER@HOST",
-        "display_name": "Alice"
-        "created_at": "2014-09-27T13:50:55.203Z",
-        "keys": [{"key": "4d7a9ae16d0092c35f63"}]
+       "email": "alice@example.com",
+       "display_name": "Alice",
+       "created_at": "2014-09-27T15:16:55.416Z",
+       "role": "user",
+       "role_permissions":    [
+          "activity_create",
+          "activity_edit_own",
+          "auth_profile_edit",
+          "comment_create",
+          "comment_edit_own",
+          "mediaitem_create_ownactivity",
+          "mediaitem_edit_own",
+          "reference_create_ownactivity",
+          "reference_edit_own",
+          "system_message_read"
+       ],
+       "keys": [{"key": "664a2072e2"}]
     }
+
+== Search for users ==
+
+Search for users by GETting the /users resource. Since there may be thousands of users in the system, it is possible to
+filter based on name, e-mail address and role.
+
+Request for all users:
+
+    GET http://127.0.0.1:3000/api/v1/users HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Request for users whose name contains 'ali':
+
+    GET http://127.0.0.1:3000/api/v1/users?display_name=ali HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Request for users with e-mail addresses containing '@example.com':
+
+    GET http://127.0.0.1:3000/api/v1/users?email=%40example.com HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Request for users with the role 'moderator':
+
+    GET http://127.0.0.1:3000/api/v1/users?display_name=moderator HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Request for moderators named Alice:
+
+    GET http://127.0.0.1:3000/api/v1/users?email=alice&role=moderator HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Response example:
+
+    [
+       {
+         "id": 1,
+         "email": "alice@example.com",
+         "email_verified": null,
+         "display_name": "Alice",
+         "created_at": "2014-09-27T13:50:55.203Z",
+         "updated_at": "2014-09-27T13:50:55.203Z",
+         "role": "user"
+       },
+       ...
+    ]
+
+== Display single user ==
+
+Request:
+
+    GET http://127.0.0.1:3000/api/v1/users/1 HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Response:
+
+    {
+       "id": 1,
+       "email": "alice@example.com",
+       "email_verified": null,
+       "display_name": "Alice",
+       "created_at": "2014-09-27T13:50:55.203Z",
+       "updated_at": "2014-09-27T13:50:55.203Z",
+       "role": "user"
+    }
+
+== Update user ==
+
+The role of the updated user is automatically reduced to the API user's role, in case API user tries to give the updated
+user more permission than granted to the API user.
+
+Request
+
+    PUT http://127.0.0.1:3000/api/v1/users/1 HTTP/1.1
+    Content-Type: application/json
+    Authorization: Token token="664a2072e2"
+    {
+       "email": "alice@example.com",
+       "display_name": "Alice",
+       "role": "user"
+    }
+
+Response
+
+    HTTP/1.1 204 No Content
+
+== Create new user ==
+
+Users can not be explicitly created.
+
+A new user is automatically created when a Google user provides a Google authentication token for the first time.
+
+== Delete user ==
+
+Currently not supported.
 
 == Show all users and their API keys (only in development mode)
 
@@ -70,7 +260,7 @@ Response (only when server is in development mode)
 
     [
        {
-            "email": "USER@HOST",
+            "email": "alice@example.com",
             "display_name": "Alice"
             "keys": [{"key": "4d7a9ae16d0092c35f63"}]
        },

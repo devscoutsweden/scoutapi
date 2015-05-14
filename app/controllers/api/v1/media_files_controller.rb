@@ -5,11 +5,13 @@ module Api
       before_action :set_media_file, only: [:show, :update, :destroy, :handle_resized_image_request]
 
       def index
+        authorize MediaFile
         @media_files = MediaFile.all
         respond_with @media_files
       end
 
       def create
+        authorize MediaFile
         @media_file = MediaFile.new(validated_params)
         if @media_file.save
           respond_with :api, :v1, @media_file, status: :created
@@ -19,10 +21,12 @@ module Api
       end
 
       def show
+        authorize @media_file
         respond_with @media_file
       end
 
       def update
+        authorize @media_file
         if @media_file.update(validated_params)
           head :no_content
         else
@@ -31,6 +35,7 @@ module Api
       end
 
       def destroy
+        authorize @media_file
         if @media_file.destroy
           head :no_content
         else
@@ -39,6 +44,7 @@ module Api
       end
 
       def handle_resized_image_request
+        skip_authorization
         begin
           size = params.require(:size)
           !!Float(size) # Will raise exception if parameter value is not numeric

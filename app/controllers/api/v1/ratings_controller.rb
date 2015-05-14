@@ -7,7 +7,7 @@ module Api
       #before_action :load_rating_entity
 
       def create
-
+        authorize Rating
         Rating.delete_all(
             {
                 :user => @userApiKey.user,
@@ -26,6 +26,7 @@ module Api
       end
 
       def show
+        authorize @rating
         @rating = Rating.find_by!(
             {
                 :user => @userApiKey.user,
@@ -35,6 +36,7 @@ module Api
       end
 
       def destroy
+        authorize @rating
         result = Rating.delete_all(
             {
                 :user => @userApiKey.user,

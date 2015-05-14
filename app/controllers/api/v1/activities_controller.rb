@@ -13,6 +13,7 @@ module Api
       ACTIVITY_FAVOURITES_STATS_SQL = FavouriteActivity.select('activity_id, count(*) favourite_count').group(:activity_id).to_sql
 
       def index
+        authorize Activity
         query_conditions = get_find_condition_params
 
         if @userApiKey.nil? && query_conditions.has_key?('my_favourites')
@@ -292,11 +293,13 @@ module Api
       end
 
       def show
+        authorize @activity
         @all_versions = params.has_key?('all_versions') && params[:all_versions] == 'true'
         respond_with @activity
       end
 
       def create
+        authorize Activity
         @activity = Activity.new(status: Db::ActivityVersionStatus::PUBLISHED)
         @activity.user = @userApiKey.user
 
@@ -341,6 +344,7 @@ module Api
       end
 
       def update
+        authorize @activity
         # Update non-versioned attributes
         # Create new revision
         # Set status of new revision to status of current revision
@@ -387,6 +391,7 @@ module Api
       end
 
       def destroy
+        authorize @activity
         @activity.activity_versions.each { |v|
           v.categories.clear
           v.references.clear

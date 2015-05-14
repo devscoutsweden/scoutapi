@@ -16,10 +16,12 @@ Scoutapi::Application.routes.draw do
       #post 'users', to: 'users#create'
       get 'users/profile', to: 'users#profile'
       put 'users/profile', to: 'users#update_profile'
+      resources :users, only: [:index, :show, :update]
       get 'all_api_keys', to: 'users#all_api_keys'
       get 'favourites', to: 'favourites#index'
       put 'favourites', to: 'favourites#update'
       get 'system/ping', to: 'system#ping'
+      get 'system/roles', to: 'system#roles'
     end
   end
   # The priority is based upon order of creation: first created -> highest priority.

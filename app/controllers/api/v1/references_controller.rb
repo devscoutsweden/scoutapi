@@ -4,11 +4,13 @@ module Api
       before_action :set_reference, only: [:show, :update, :destroy]
 
       def index
+        authorize Reference
         @references = Reference.all
         respond_with @references
       end
 
       def create
+        authorize Reference
         @reference = Reference.new(validated_params)
         if @reference.save
           respond_with :api, :v1, @reference, status: :created
@@ -18,10 +20,12 @@ module Api
       end
 
       def show
+        authorize @reference
         respond_with @reference
       end
 
       def update
+        authorize @reference
         if @reference.update(validated_params)
           head :no_content
         else
@@ -30,6 +34,7 @@ module Api
       end
 
       def destroy
+        authorize @reference
         if @reference.destroy
           head :no_content
         else

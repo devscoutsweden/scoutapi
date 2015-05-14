@@ -7,6 +7,7 @@ module Api
       before_action :set_related_activity, only: [:destroy]
 
       def index
+        authorize ActivityRelation
         @related_activities = ActivityRelation.where(:activity_id => params[:activity_id])
         respond_with @related_activities
       end
@@ -14,6 +15,9 @@ module Api
       def create
         @related_activity = ActivityRelation.new(validated_params)
         @related_activity.user = @userApiKey.user
+
+        authorize @related_activity
+
         if @related_activity.save
           respond_with :api, :v1, @related_activity, status: :created
         else
@@ -22,6 +26,7 @@ module Api
       end
 
       def destroy
+        authorize @related_activity
         if @related_activity.destroy
           head :no_content
         else
@@ -30,6 +35,7 @@ module Api
       end
 
       def set_auto_generated
+        authorize ActivityRelation
         #activity = Activity.find(params[:activity_id])
         ActivityRelation.delete_all({
                                         :is_auto_generated => true,

@@ -1,10 +1,16 @@
 require 'google-id-token'
 
 class ApplicationController < ActionController::Base
+  include Pundit # Pundit is the authorization module
+
   respond_to :json
+
+  after_action :verify_authorized # Make sure that all controller actions invoke either authorize or skip_authorization.
+
   rescue_from ActiveRecord::RecordNotUnique, :with => :error_record_not_unique
   rescue_from ActiveRecord::RecordNotFound, :with => :error_record_not_found
   rescue_from ActiveRecord::RecordInvalid, :with => :error_record_has_invalid_data
+  rescue_from Pundit::NotAuthorizedError, :with => :error_unauthorized_role # Print short error message, instead of default stack trace in HTML format, when user is not authorized to invoke an operation.
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
@@ -21,6 +27,11 @@ class ApplicationController < ActionController::Base
   AUTH_TYPE_GOOGLE = 'google'
 
   HTTP_HEADER_APIKEY = 'X-ScoutAPI-APIKey'
+
+  # The current_user method is required by Pundit
+  def current_user
+    @userApiKey.user
+  end
 
   def restrict_access_to_api_users_if_credentials_supplied
     restrict_access_to_api_users if request.authorization
@@ -74,11 +85,11 @@ class ApplicationController < ActionController::Base
               end
             else
               Rails.logger.error('Invalid Google ID token')
-              error_forbidden('Invalid Google ID token')
+              error_unauthorized('Invalid Google ID token')
             end
           rescue JWT::ExpiredSignature
             Rails.logger.error('Signature has expired')
-            error_forbidden('Signature has expired')
+            error_unauthorized('Signature has expired')
           end
         else
           Rails.logger.error('Unsupported token type')
@@ -94,7 +105,11 @@ class ApplicationController < ActionController::Base
   end
 
   def error_unauthorized(error)
-    render_error error, 'You must provide credentials in order to perform the search/operation', :unauthorized
+    render_error error, 'You must provide credentials', :unauthorized
+  end
+
+  def error_unauthorized_role
+    render_error 'Your role does not grant you permission to this operation', 'You are not authorized', :forbidden
   end
 
   def error_record_not_unique(error)
