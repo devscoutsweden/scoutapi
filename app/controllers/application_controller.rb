@@ -30,7 +30,11 @@ class ApplicationController < ActionController::Base
 
   # The current_user method is required by Pundit
   def current_user
-    @userApiKey.user
+    if @userApiKey.nil?
+      nil
+    else
+      @userApiKey.user
+    end
   end
 
   def restrict_access_to_api_users_if_credentials_supplied
