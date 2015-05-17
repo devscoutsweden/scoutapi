@@ -148,11 +148,9 @@ Example keys and values:
 
 This list shows keys (configuration properties) with agreed-upon meanings.
 
-Key | Purpose
---- | -------
-api:host | The host name and port used to connect to the API. Sample value: *api.devscout.se:8080*.
-contact:error | URL to which to send error and bug reports. Sample value: *mailto:api@devscout.se* or *http://api.devscout.se/report_error*.
-contact:info | URL used to contact the API development team. Sample value: *mailto:api@devscout.se*.
+[api:host] The host name and port used to connect to the API. Sample value: api.devscout.se:8080.
+[contact:error] URL to which to send error and bug reports. Sample value: mailto:api@devscout.se or http://api.devscout.se/report_error.
+[contact:info] URL used to contact the API development team. Sample value: mailto:api@devscout.se.
 
 === Add new system message
 
