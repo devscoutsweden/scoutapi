@@ -120,3 +120,133 @@ Request:
 Response:
 
     HTTP/1.1 204 No Content
+
+== System Messages
+
+The API has a simple mechanism for providing system messages to clients. These messages are simple key-value pairs which
+are used to inform and instruct the clients about changes to the API, e.g. scheduled down-time and DNS names. Since some
+types of messages (instructions) are only valid for a certain period of time, each system messages may have a time span
+specified which tells clients when the messages (i.e. instruction) is to be used/applied/considered.
+
+This mechanism allows administrators to:
+
+* Prepare client applications for server changes, e.g. by sending out information about the API server's new host name and the date from which this new host name will be valid. Clients will then know that requests must be sent to that new address from that date.
+* Send maintenance notifications to end-users, e.g. notifying them of scheduled server outages.
+
+Keys does not have to be unique, not even within a certain time span. Clients must be able to handle multiple current
+values for the same key (property). The only way of referring to a system message is by its database id (primary key
+value).
+
+Example keys and values:
+
+* api:dns:primary = "api.devscout.se"
+* api:dns:secondary = "12.34.56.78"
+* client:androidapp-1.0:enablephotoupload = "false"
+* message:androidapp-0.0-0.9 = "Support for your version of the app will end after May. Please upgrade to the latest version using Google Play Store."
+
+=== Reserved keys
+
+This list shows keys (configuration properties) with agreed-upon meanings.
+
+Key | Purpose
+--- | -------
+api:host | The host name and port used to connect to the API. Sample value: *api.devscout.se:8080*.
+contact:error | URL to which to send error and bug reports. Sample value: *mailto:api@devscout.se* or *http://api.devscout.se/report_error*.
+contact:info | URL used to contact the API development team. Sample value: *mailto:api@devscout.se*.
+
+=== Add new system message
+
+Request:
+
+    POST http://127.0.0.1:3000/api/v1/system_messages HTTP/1.1
+    Authorization: Token token="664a2072e2"
+    {
+    	"key": "test:key1",
+    	"value": "Valid after 2015-05-20",
+    	"validTo": null,
+    	"validFrom": "2015-05-20T00:00:00.000Z"
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+    {
+       "id": 10,
+       "key": "test:key1",
+       "value": "Valid after 2015-05-20",
+       "validTo": null,
+       "validFrom": "2015-05-20T00:00:00.000Z",
+       "created_at": "2015-05-17T06:56:08.241Z",
+       "updated_at": "2015-05-17T06:56:08.241Z",
+       "user_id": 7
+    }
+
+
+=== Edit system message
+
+Request:
+
+    PUT http://127.0.0.1:3000/api/v1/system_messages/1 HTTP/1.1
+    Authorization: Token token="664a2072e2"
+    {
+       "key": "test:key2",
+       "value": "The second test",
+       "validTo": null,
+       "validFrom": null
+    }
+
+Response:
+
+    HTTP/1.1 204 No Content
+
+
+=== List system messages
+
+The API supports two filtering parameters:
+
+* key: Return messages whose key starts with this value.
+* key[]: Return messages whose key starts with either of the specified values.
+* valid: Either "now" or "now_and_future".
+  * "now" returns messages which are valid right now
+  * "now_and_future" returns messages which are valid right now but also messages which will be valid sometime in the future.
+
+Note that reading system messages does NOT require any authentication (all clients should always be able to read any system message).
+
+Request for all messages:
+
+    GET http://127.0.0.1:3000/api/v1/system_messages HTTP/1.1
+
+Request for currently valid messages:
+
+    GET http://127.0.0.1:3000/api/v1/system_messages?valid=now HTTP/1.1
+
+Request for messages where the key starts with "client:android" or "test":
+
+    GET http://127.0.0.1:3000/api/v1/system_messages?key%5B%5D=client:android&key%5B%5D=test HTTP/1.1
+
+Sample response:
+
+    [
+       {
+          "id": 6,
+          "key": "test:key1",
+          "value": "Valid after 2015-05-20",
+          "validTo": null,
+          "validFrom": "2015-05-20T00:00:00.000Z",
+          "created_at": "2015-05-17T06:54:03.731Z",
+          "updated_at": "2015-05-17T06:54:03.731Z",
+          "user_id": 7
+       },
+       ...
+    ]
+
+=== Delete system message
+
+Request (deletes system message 1):
+
+    DELETE http://127.0.0.1:3000/api/v1/system_messages/1 HTTP/1.1
+    Authorization: Token token="664a2072e2"
+
+Response:
+
+    HTTP/1.1 204 No Content

@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  key: MyString
+  value: MyString
+  validTo: 2015-05-16 19:03:46
+  validFrom: 2015-05-16 19:03:46
+
+two:
+  key: MyString
+  value: MyString
+  validTo: 2015-05-16 19:03:46
+  validFrom: 2015-05-16 19:03:46

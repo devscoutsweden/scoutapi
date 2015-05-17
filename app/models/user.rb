@@ -13,6 +13,7 @@ class User < ActiveRecord::Base
   has_many :ratings, :dependent => :delete_all
   has_many :activity_versions
   has_many :activity_relations
+  has_many :system_messages
 
   # Return sorted list of permissions which user has based on their role
   def role_permissions

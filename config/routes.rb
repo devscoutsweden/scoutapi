@@ -10,6 +10,7 @@ Scoutapi::Application.routes.draw do
         resources :related, controller: 'related_activities', only: [:index, :create, :destroy]
       end
       resources :references, only: [:index, :show, :create, :update, :destroy]
+      resources :system_messages, only: [:index, :show, :create, :update, :destroy]
       resources :media_files, only: [:index, :show, :create, :update, :destroy] do
         get 'file', to: 'media_files#handle_resized_image_request'
       end

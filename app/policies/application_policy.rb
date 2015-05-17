@@ -52,8 +52,7 @@ class ApplicationPolicy
       # Permissions for administrators (level 20):
       #
 
-      system_message_create: 20,
-      system_message_edit: 20,
+      system_message_manage: 20,
       auth_role_assign: 20,
       auth_role_list: 20,
       auth_user_edit: 20,

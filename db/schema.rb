@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150513190131) do
+ActiveRecord::Schema.define(version: 20150516170346) do
 
   create_table "activities", force: true do |t|
     t.integer  "status"
@@ -166,6 +166,19 @@ ActiveRecord::Schema.define(version: 20150513190131) do
     t.datetime "updated_at"
     t.string   "description"
   end
+
+  create_table "system_messages", force: true do |t|
+    t.string   "key",        limit: 100,   null: false
+    t.string   "value",      limit: 10000, null: false
+    t.datetime "validTo"
+    t.datetime "validFrom"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "user_id"
+  end
+
+  add_index "system_messages", ["key"], name: "index_system_messages_on_key"
+  add_index "system_messages", ["user_id"], name: "index_system_messages_on_user_id"
 
   create_table "user_api_keys", force: true do |t|
     t.string   "key"
