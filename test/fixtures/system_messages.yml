@@ -3,11 +3,11 @@
 one:
   key: MyString
   value: MyString
-  validTo: 2015-05-16 19:03:46
-  validFrom: 2015-05-16 19:03:46
+  valid_to: 2015-05-16 19:03:46
+  valid_from: 2015-05-16 19:03:46
 
 two:
   key: MyString
   value: MyString
-  validTo: 2015-05-16 19:03:46
-  validFrom: 2015-05-16 19:03:46
+  valid_to: 2015-05-16 19:03:46
+  valid_from: 2015-05-16 19:03:46

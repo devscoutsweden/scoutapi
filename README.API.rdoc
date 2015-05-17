@@ -161,8 +161,8 @@ Request:
     {
     	"key": "test:key1",
     	"value": "Valid after 2015-05-20",
-    	"validTo": null,
-    	"validFrom": "2015-05-20T00:00:00.000Z"
+    	"valid_to": null,
+    	"valid_from": "2015-05-20T00:00:00.000Z"
     }
 
 Response:
@@ -172,8 +172,8 @@ Response:
        "id": 10,
        "key": "test:key1",
        "value": "Valid after 2015-05-20",
-       "validTo": null,
-       "validFrom": "2015-05-20T00:00:00.000Z",
+       "valid_to": null,
+       "valid_from": "2015-05-20T00:00:00.000Z",
        "created_at": "2015-05-17T06:56:08.241Z",
        "updated_at": "2015-05-17T06:56:08.241Z",
        "user_id": 7
@@ -189,8 +189,8 @@ Request:
     {
        "key": "test:key2",
        "value": "The second test",
-       "validTo": null,
-       "validFrom": null
+       "valid_to": null,
+       "valid_from": null
     }
 
 Response:
@@ -229,8 +229,8 @@ Sample response:
           "id": 6,
           "key": "test:key1",
           "value": "Valid after 2015-05-20",
-          "validTo": null,
-          "validFrom": "2015-05-20T00:00:00.000Z",
+          "valid_to": null,
+          "valid_from": "2015-05-20T00:00:00.000Z",
           "created_at": "2015-05-17T06:54:03.731Z",
           "updated_at": "2015-05-17T06:54:03.731Z",
           "user_id": 7

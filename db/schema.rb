@@ -170,8 +170,8 @@ ActiveRecord::Schema.define(version: 20150516170346) do
   create_table "system_messages", force: true do |t|
     t.string   "key",        limit: 100,   null: false
     t.string   "value",      limit: 10000, null: false
-    t.datetime "validTo"
-    t.datetime "validFrom"
+    t.datetime "valid_to"
+    t.datetime "valid_from"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"

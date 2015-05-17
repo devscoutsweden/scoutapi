@@ -17,10 +17,10 @@ module Api
         end
         case p[:valid]
           when 'now'
-            users = users.where('validTo IS NULL OR validTo > ?', DateTime.now)
-            users = users.where('validFrom IS NULL OR validFrom < ?', DateTime.now)
+            users = users.where('valid_to IS NULL OR valid_to > ?', DateTime.now)
+            users = users.where('valid_from IS NULL OR valid_from < ?', DateTime.now)
           when 'now_and_future'
-            users = users.where('validTo IS NULL OR validTo > ?', DateTime.now)
+            users = users.where('valid_to IS NULL OR valid_to > ?', DateTime.now)
         end
 
         respond_with users
@@ -72,7 +72,7 @@ module Api
 
       def validated_params
         Rails.logger.info("PARAMS: #{params.inspect}")
-        params.permit(:key, :value, :validTo, :validFrom)
+        params.permit(:key, :value, :valid_to, :valid_from)
       end
     end
   end
