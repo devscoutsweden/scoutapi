@@ -1,11 +1,11 @@
 source 'https://rubygems.org'
 
-ruby '1.9.3'
+ruby '2.0.0'
 
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.1.5'
+gem 'rails', '4.1.8'
 
 # Use postgresql as the database for Active Record
 gem 'pg', :group => :production
