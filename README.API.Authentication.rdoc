@@ -39,6 +39,26 @@ specified, or if it is incorrect:
 
     HTTP Token: Access denied.
 
+=== Creating API Users Manually
+
+You can create users without associated identities, e.g. accounts for robots and other services, by executing these SQL
+commands (this example creates a moderator called "Auto-updater" with a 50-character API key):
+
+    INSERT INTO users (display_name, created_at, updated_at, role) VALUES (
+        'Auto-updater',
+        LOCALTIMESTAMP,
+        LOCALTIMESTAMP,
+        10);
+
+    INSERT INTO user_api_keys (key, created_at, updated_at, user_id) VALUES (
+        ARRAY_TO_STRING(ARRAY(SELECT SUBSTR('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', TRUNC(RANDOM() * 62)::integer + 1, 1) FROM   GENERATE_SERIES(1, 50)), ''),
+        LOCALTIMESTAMP,
+        LOCALTIMESTAMP,
+        (SELECT ID FROM users WHERE display_name = 'Auto-updater')
+        );
+
+Note that the SQL syntax is specific to PostgreSQL.
+
 == Roles and Permissions
 
 The API uses a role-based mechanism for determining what operations a user may perform.
