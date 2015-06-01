@@ -15,7 +15,7 @@ gem 'thin', :group => :production
 
 # Must use https://github.com/Nerian/google-id-token instead of official "because the original one is
 # outdated" (source: http://dev.mikamai.com/post/101852140929/google-device-authentication-in-your-rails-app)
-gem 'google-id-token', git: 'git@github.com:Nerian/google-id-token.git'
+gem 'google-id-token', git: 'https://github.com/Nerian/google-id-token.git'
 
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.3'
@@ -42,7 +42,7 @@ gem 'spring', group: :development
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use unicorn as the app server
-# gem 'unicorn'
+gem 'unicorn', '~> 4.9.0', :group => :production
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
