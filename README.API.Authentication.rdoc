@@ -87,6 +87,18 @@ Effects of sample roles and permissions:
 * Administrators may delete activities (20 >= 15)
 * Moderators may NOT delete activities (10 < 15)
 
+=== Create Administrator
+
+The only way of creating administrators is to either create the user from scratch, as shown above, or to update the
+role attribute for an existing user. Both methods require direct access to the database, i.e. a way of sending SQL
+commands to the database.
+
+Step 1) Find the user:
+select * from users;
+
+Step 2) Change the user's role (in this case the role is set for user 2):
+update users set role = 20 where id = 2;
+
 === Show all roles and permissions
 
 Clients may retrieve a list of all roles and permissions available in the system.
