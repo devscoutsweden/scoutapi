@@ -2,6 +2,7 @@ require 'net/http'
 module Api
   module V1
     class MediaFilesController < ApplicationController
+      before_filter :restrict_access_to_api_users, except: [:index, :show]
       before_action :set_media_file, only: [:show, :update, :destroy, :handle_resized_image_request]
 
       def index
