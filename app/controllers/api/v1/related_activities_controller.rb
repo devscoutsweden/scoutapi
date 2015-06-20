@@ -3,7 +3,7 @@ module Api
   module V1
     include Db
     class RelatedActivitiesController < ApplicationController
-      before_filter :restrict_access_to_api_users
+      before_filter :restrict_access_to_api_users, except: [:index]
       before_action :set_related_activity, only: [:destroy]
 
       def index
