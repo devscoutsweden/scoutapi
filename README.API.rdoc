@@ -102,6 +102,45 @@ Response if error occurred (example when category does not exist)
     "error": "The requested object does not exist."
   }
 
+== Upload new media file
+
+There are two ways of adding files to the database:
+
+* Specify an URL where the file is located. The URL will be stored in the database but the file itself will not be
+  downloaded by the server. This means that the API requires the other server, the server where the file is actually
+  stored, to remain online.
+* Encode the image using Base64 and include the resulting string in the request. The file will be stored on the server
+  and will be publicly accessible, albeit under a hard-to-guess name. The relative path to the file, rather than the
+  full URL, will be stored in the database.
+
+Request to create a media item which references file on other server:
+
+    POST http://127.0.0.1:3000/api/v1/media_files HTTP/1.1
+    Authorization: Token token="664a2072e2"
+    Content-Type: application/json
+    {
+        "mime_type": "image/jpeg",
+        "uri": "http://example.com/illustration.jpg"
+    }
+
+Request to upload media item to the API server:
+
+    POST http://127.0.0.1:3000/api/v1/media_files HTTP/1.1
+    Authorization: Token token="664a2072e2"
+    Content-Type: application/json
+    {
+        "mime_type": "image/png",
+        "data": "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"
+    }
+
+Response:
+
+    HTTP/1.1 201 Created
+    {
+        "id":36,
+        "mime_type":"image/jpeg",
+        ...
+    }
 
 == Get media files
 

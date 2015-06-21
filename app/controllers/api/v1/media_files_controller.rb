@@ -1,4 +1,6 @@
 require 'net/http'
+require 'rack/mime'
+
 module Api
   module V1
     class MediaFilesController < ApplicationController
@@ -14,11 +16,39 @@ module Api
       def create
         authorize MediaFile
         @media_file = MediaFile.new(validated_params)
+
+        base64_data = validated_params["data"]
+        if !base64_data.nil?
+          mime_type = validated_params['mime_type']
+
+          saved_file_path = save_base64_encoded_file(base64_data, mime_type)
+
+          @media_file.data = nil
+          @media_file.uri = saved_file_path
+        end
+
         if @media_file.save
           respond_with :api, :v1, @media_file, status: :created
         else
           respond_with @media_file.errors, status: :unprocessable_entity
         end
+      end
+
+      def save_base64_encoded_file(base64_data, mime_type)
+        folder_name = sprintf("%04d", (MediaFile.maximum(:id)+1).round(-3)) # Create one folder for every 1000 uploads
+        extension = Rack::Mime::MIME_TYPES.invert[mime_type]
+        random_name = [*('a'..'z')].shuffle[0, 20].join
+
+        folder_path = "public/system/media_files/#{folder_name}"
+
+        FileUtils.mkdir_p folder_path
+
+        f = File.new("#{folder_path}/#{random_name}#{extension}", "w+b")
+        f.write(Base64.decode64(base64_data))
+        Rails.logger.info("Uploaded file saved as #{f.path}. Size: #{f.size} bytes.")
+        f.close()
+
+        f.path.to_s
       end
 
       def show
@@ -105,7 +135,7 @@ module Api
         http.use_ssl = url.include?('https')
 
         response = http.request(
-          Net::HTTP::Get.new(uri.request_uri)
+            Net::HTTP::Get.new(uri.request_uri)
         )
         File.open(local_path, 'wb') { |f| f.write(response.body) }
         Rails.logger.info("Has downloaded #{url} and saved it as #{local_path}")
