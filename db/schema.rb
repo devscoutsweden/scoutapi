@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150516170346) do
+ActiveRecord::Schema.define(version: 20150621133943) do
 
   create_table "activities", force: true do |t|
     t.integer  "status"
@@ -34,14 +34,14 @@ ActiveRecord::Schema.define(version: 20150516170346) do
 
   create_table "activity_versions", force: true do |t|
     t.integer  "status"
-    t.string   "name",               limit: 100
+    t.string   "name",               limit: 500
     t.datetime "published_at"
-    t.string   "descr_material",     limit: 10000
-    t.string   "descr_introduction", limit: 10000
-    t.string   "descr_prepare",      limit: 10000
-    t.string   "descr_main",         limit: 10000
-    t.string   "descr_safety",       limit: 10000
-    t.string   "descr_notes",        limit: 10000
+    t.string   "descr_material",     limit: 50000
+    t.string   "descr_introduction", limit: 50000
+    t.string   "descr_prepare",      limit: 50000
+    t.string   "descr_main",         limit: 50000
+    t.string   "descr_safety",       limit: 50000
+    t.string   "descr_notes",        limit: 50000
     t.integer  "age_min"
     t.integer  "age_max"
     t.integer  "participants_min"
