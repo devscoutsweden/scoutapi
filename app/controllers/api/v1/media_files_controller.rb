@@ -24,7 +24,9 @@ module Api
           saved_file_path = save_base64_encoded_file(base64_data, mime_type)
 
           @media_file.data = nil
-          @media_file.uri = saved_file_path
+
+          # Set uri attribute to the file's path as seen from the "outside", i.e. the path part of the file's URL.
+          @media_file.uri = saved_file_path[Rails.root.join('public').to_s.length+1 .. -1]
         end
 
         if @media_file.save
