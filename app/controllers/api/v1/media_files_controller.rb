@@ -39,9 +39,9 @@ module Api
         extension = Rack::Mime::MIME_TYPES.invert[mime_type]
         random_name = [*('a'..'z')].shuffle[0, 20].join
 
-        folder_path = "public/system/media_files/#{folder_name}"
+        folder_path = Rails.root.join('public', 'system', 'media_files', folder_name)
 
-        FileUtils.mkdir_p folder_path
+        Dir.mkdir(folder_path, 0777) unless File.exists?(folder_path)
 
         f = File.new("#{folder_path}/#{random_name}#{extension}", "w+b")
         f.write(Base64.decode64(base64_data))
