@@ -4,7 +4,7 @@ require 'rack/mime'
 module Api
   module V1
     class MediaFilesController < ApplicationController
-      before_filter :restrict_access_to_api_users, except: [:index, :show]
+      before_filter :restrict_access_to_api_users, except: [:index, :show, :handle_resized_image_request]
       before_action :set_media_file, only: [:show, :update, :destroy, :handle_resized_image_request]
 
       def index
@@ -106,7 +106,13 @@ module Api
         local_path = File.join(Pathname.new(local_folder_path).to_s, local_name)
 
         if !File.exists?(local_path)
-          download_image_from_url(@media_file.uri, local_path)
+          if File.exists?(Rails.root.join('public', @media_file.uri))
+            # Local file. Create copy which can be resized.
+            FileUtils.cp(Rails.root.join('public', @media_file.uri), local_path)
+          else
+            # Remote file. Download so that it can be resized.
+            download_image_from_url(@media_file.uri, local_path)
+          end
 
           if !size.nil?
             cmd = "convert \"#{local_path}\" -resize \"#{size}x#{size}\" -strip"
