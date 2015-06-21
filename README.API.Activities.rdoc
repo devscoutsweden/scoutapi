@@ -473,6 +473,22 @@ Request to update activity 11 with new information (will be saved as new revisio
 The user's rating for the activity cannot be updated this way. The dedicated /activities/NN/rating resource must be
 invoked for this.
 
+Updates can be performed using both PUT and PATCH. The semantics are similar but not identical:
+
+* PUT creates a new empty revision and then sets attributes based on the request data.
+* PATCH copies the current revision and then sets attributes based on the request data.
+
+The subtle difference is that PUT requires the client to specify all the attribute values and this also ensures that the
+new revision will look exactly as the data sent by the client. Using PATH, on the other hand, enables clients to update
+as little as a single attribute without affecting anything else (which is useful if the client does not care/know about
+the other activity attributes).
+
+The activity's categories/references are specified as arrays of id numbers. This
+also means that the categories/references must have been created prior to
+updating the activity.
+
+Request to update the activity so that it has exactly the specified attribute values:
+
   PUT http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
   Authorization: Token token="4d7a9ae16d0092c35f63"
   Content-Type: application/json
@@ -494,9 +510,18 @@ invoked for this.
      "references": [123, 456]
   }
 
-The activity's categories/references are specified as arrays of id numbers. This
-also means that the categories/references must have been created prior to
-updating the activity.
+Request to update only the activity's name and its categories:
+
+  PATCH http://127.0.0.1:3000/api/v1/activities/11 HTTP/1.1
+  Authorization: Token token="4d7a9ae16d0092c35f63"
+  Content-Type: application/json
+  {
+     "name": "Only The Name Will Be Updated When Using PATCH",
+     "categories": [1, 2, 3]
+  }
+
+Note that the collection attributes (categories, references and media_files) must be specified in full when using the
+PATCH method. In other words, it is not possible to add/remove a single collection item using the PATCH method.
 
 Response:
 

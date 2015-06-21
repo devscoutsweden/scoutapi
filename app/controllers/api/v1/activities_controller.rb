@@ -350,10 +350,28 @@ module Api
         # Set status of new revision to status of current revision
         # Set status of current revision to PREVIOUSLY_PUBLISHED if it is PUBLISHED
 
-        new_version = ActivityVersion.new(get_activity_version_params)
-        new_version.user = @userApiKey.user
-
         version_to_replace = @activity.activity_versions.order(:id).last
+
+        if request.put?
+          # Client wants to create a new revision using only the attribute values specified by the client.
+
+          new_version = ActivityVersion.new(get_activity_version_params)
+        else
+          # Client wants to create a new revision and use the currently stored attribute values for those attributes
+          # that the client has not specified any values.
+
+          # Create a shallow copy of the current revision
+          new_version = version_to_replace.dup
+
+          # Copy collections (which are not copied by the dup method)
+          new_version.categories.replace(version_to_replace.categories)
+          new_version.references.replace(version_to_replace.references)
+          new_version.media_files.replace(version_to_replace.media_files)
+
+          # Update the copy with values from the client
+          new_version.assign_attributes(get_activity_version_params)
+        end
+        new_version.user = @userApiKey.user
 
         new_version.status = version_to_replace.status
 
@@ -369,15 +387,15 @@ module Api
         end
 
         if !params[:categories].nil? && !params[:categories].empty?
-          new_version.categories << Category.find(params[:categories])
+          new_version.categories.replace(Category.find(params[:categories]))
         end
 
         if !params[:references].nil? && !params[:references].empty?
-          new_version.references << Reference.find(params[:references])
+          new_version.references.replace(Reference.find(params[:references]))
         end
 
         if !params[:media_files].nil? && !params[:media_files].empty?
-          new_version.media_files << MediaFile.find(params[:media_files])
+          new_version.media_files.replace(MediaFile.find(params[:media_files]))
         end
 
         new_version.activity = @activity
