@@ -576,7 +576,7 @@ Response
 
 Attaching (uploading) a photo to an activity requires a few steps:
 
-1. Upload the image by POSTing to api/v1/media_files
+=== 1. Upload the image by POSTing to api/v1/media_files
 
 Sample request:
 
@@ -597,7 +597,7 @@ Sample response:
        ...
     }
 
-2. Get activity's current list of associated media items by GETting api/v1/activities/999?attrs%5B%5D=media_files
+=== 2. Get activity's current list of associated media items by GETting api/v1/activities/999?attrs%5B%5D=media_files
 
 Sample response:
 
@@ -610,7 +610,7 @@ Sample response:
        ]
     }
 
-3. Patch the activity by PATCHing api/v1/activities/999
+=== 3. Patch the activity by PATCHing api/v1/activities/999
 
 Sample request:
 
