@@ -12,6 +12,17 @@ Show all activities with "water" in title or one of the description fields:
 
   GET http://127.0.0.1:3000/api/v1/activities?text=vatten
 
+The API supports searching for multiple words, all of which must be present in each matched activity. Each word is
+separated by a space. Additionally, the API also supports excluding activities containing words prefixed by a minus.
+
+Some examples:
+
+    The text or name parameter  Interpretation
+    --------------------------  --------------
+    cat                         Activities containing "cat", "cats", "catepillar", "scattered" and so on.
+    cat dog                     Activities which contains "cat" at least once and "dog" at least once.
+    cat -dog -catepillar        Activitiies with "cat" and "dog" but not "catepillar".
+
 Show featured (hand-picked by editor) activities with "person" in description:
 
   GET http://127.0.0.1:3000/api/v1/activities?featured=true&text=person
