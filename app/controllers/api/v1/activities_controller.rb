@@ -12,6 +12,14 @@ module Api
 
       ACTIVITY_FAVOURITES_STATS_SQL = FavouriteActivity.select('activity_id, count(*) favourite_count').group(:activity_id).to_sql
 
+      TEXT_COLUMNS = ["activity_versions.name",
+                      "activity_versions.descr_introduction",
+                      "activity_versions.descr_main",
+                      "activity_versions.descr_material",
+                      "activity_versions.descr_notes",
+                      "activity_versions.descr_prepare",
+                      "activity_versions.descr_safety"]
+
       def index
         authorize Activity
         query_conditions = get_find_condition_params
@@ -83,26 +91,27 @@ module Api
           q = q.where("r.ratings_average >= ?", query_conditions[:ratings_average_min].to_f)
         end
         if query_conditions.has_key?("text")
-          q = q.where("LOWER(activity_versions.name) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_introduction) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_main) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_material) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_notes) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_prepare) LIKE ? "+
-                          "OR " +
-                          "LOWER(activity_versions.descr_safety) LIKE ?",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%",
-                      "%#{query_conditions[:text].mb_chars.downcase.to_s}%")
+
+          # Split search condition into parts (using any whitespace as the separator) and create a WHERE condition for each part
+
+          query_conditions[:text].mb_chars.downcase.to_s.split(/\s+/).each { |word|
+
+            # Must the word be present or must the word NOT be present?
+            is_excluding = word[0] == '-'
+
+            # Remove initial "-" if necessary
+            word = is_excluding ? word[1..-1] : word
+
+            if is_excluding
+              # activities may not have the word in any text column, but null columns are ignored.
+              condition = TEXT_COLUMNS.map { |col| "(LOWER(#{col}) NOT LIKE ? OR #{col} IS NULL)" }.join(' AND ')
+            else
+              # activities may have the word in any text column
+              condition = TEXT_COLUMNS.map { |col| "LOWER(#{col}) LIKE ?" }.join(' OR ')
+            end
+
+            q = q.where(condition,*["%#{word}%"]*TEXT_COLUMNS.length)
+          }
         end
 
         if query_conditions.has_key?("random")
