@@ -41,7 +41,8 @@ module Api
       def update
         authorize @category
         @category.media_file = get_or_create_media_file()
-        if @category.update(validated_params)
+        @category.assign_attributes(validated_params)
+        if @category.save
           head :no_content
         else
           respond_with @category.errors, status: :unprocessable_entity
