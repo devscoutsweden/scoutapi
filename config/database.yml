@@ -23,7 +23,15 @@ default: &default
 
 development:
   <<: *default
-  database: Scoutapi_development
+  adapter: sqlite3
+
+#  database: ":memory:"
+#  database: Scoutapi_development
+
+
+  database: db/Scoutapi_development.sqlite3
+  verbosity: quiet
+#  encoding: utf8
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -57,7 +65,10 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: Scoutapi_test
+  database: scoutapi-test
+  username: scoutapi
+  password: <%= ENV['SCOUTAPI_TEST_DATABASE_PASSWORD'] %>
+  host: localhost
 
 # As with config/secrets.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -80,6 +91,7 @@ test:
 #
 production:
   <<: *default
-  database: Scoutapi_production
-  username: Scoutapi
-  password: <%= ENV['SCOUTAPI_DATABASE_PASSWORD'] %>
+  database: scoutapi
+  username: scoutapi
+  password: <%= ENV['SCOUTAPI_PRODUCTION_DATABASE_PASSWORD'] %>
+  host: localhost
