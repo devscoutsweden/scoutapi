@@ -115,3 +115,45 @@ an activity as the "non-versioned activity data merged with the most-recent
 versioned data". The user will not be aware that the activity information is
 fetched from multiple tables. It should, however, be possible for a user to
 explicitly retrieve all revisions of an activity or comment.
+
+== Setting up the test environment
+
+# Checking out source code
+
+[devscout@misc devscout]$ git clone https://github.com/devscoutsweden/scoutapi.git scoutapi-test
+
+# Copying database
+
+  $ pg_dump -Fc scoutapi -U scoutapi > scoutapi.dump
+  $ pg_restore -d scoutapi-test scoutapi.dump  -U scoutapi
+
+# Creating unicorn.rb
+
+[devscout@misc scoutapi-test]$ cp ../scoutapi/config/unicorn.rb config/unicorn.rb
+[devscout@misc scoutapi-test]$ nano -w config/unicorn.rb
+[devscout@misc scoutapi-test]$ cat config/unicorn.rb
+working_directory "/var/www/devscout/scoutapi-test"
+pid "/var/www/devscout/scoutapi-test/pids/unicorn.pid"
+stderr_path "/var/www/devscout/scoutapi-test/log/unicorn.log"
+stdout_path "/var/www/devscout/scoutapi-test/log/unicorn.log"
+listen "/var/run/unicorn/scoutapi-test.sock"
+worker_processes 4
+timeout 30
+
+# Installing Ruby dependencies
+
+[devscout@misc scoutapi-test]$ bundle update
+
+[devscout@misc scoutapi-test]$ bundle install
+
+# Creating directory for storing process id file
+
+[devscout@misc scoutapi-test]$ mkdir pids
+
+# Setting database password
+
+[devscout@misc scoutapi-test]$ export SCOUTAPI_TEST_DATABASE_PASSWORD=****************
+
+# Starting server
+
+[devscout@misc scoutapi-test]$ bundle exec unicorn_rails -D -c config/unicorn.rb -E test
