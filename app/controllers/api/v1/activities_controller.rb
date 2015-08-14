@@ -41,7 +41,7 @@ module Api
         q = q.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
-          q = q.where(featured: query_conditions[:featured] == "true")
+          q = q.where(featured: query_conditions[:featured] == true)
         end
 
         if query_conditions.has_key?("id")
@@ -361,7 +361,8 @@ module Api
 
         version_to_replace = @activity.activity_versions.order(:id).last
 
-        if request.put?
+        # Note on "method override": The Android SDK does not support the PATCH method and the Android app instead sends a PUT requiest with an additional header when PATCH was actually desired.
+        if request.put? && request.headers['X-HTTP-Method-Override'] != 'patch'
           # Client wants to create a new revision using only the attribute values specified by the client.
 
           new_version = ActivityVersion.new(get_activity_version_params)
@@ -469,7 +470,7 @@ module Api
       #end
 
       def get_activity_version_params
-        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max)
+        params.permit(:name, :descr_introduction, :descr_main, :descr_material, :descr_notes, :descr_prepare, :descr_safety, :age_min, :age_max, :participants_min, :participants_max, :time_min, :time_max, :featured)
       end
 
       def get_find_condition_params
