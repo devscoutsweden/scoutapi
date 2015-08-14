@@ -41,7 +41,7 @@ module Api
         q = q.where("activity_versions.status = ?", Db::ActivityVersionStatus::PUBLISHED)
 
         if query_conditions.has_key?("featured")
-          q = q.where(featured: query_conditions[:featured] == true)
+          q = q.where(featured: query_conditions[:featured] == 'true')
         end
 
         if query_conditions.has_key?("id")
