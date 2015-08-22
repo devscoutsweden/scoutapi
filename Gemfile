@@ -52,3 +52,5 @@ gem 'unicorn', '~> 4.9.0', :group => :production
 
 # Use Pundit for authorization
 gem 'pundit', '1.0.0'
+
+gem 'rack-cors', :require => 'rack/cors'

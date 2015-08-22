@@ -22,5 +22,14 @@ module Scoutapi
 
     #config.active_record.whitelist_attributes = false
     config.middleware.use Rack::Deflater
+
+    #config.middleware.use Rack::Cors do
+    config.middleware.insert_before 0, "Rack::Cors", :debug => true, :logger => (-> { Rails.logger }) do
+      allow do
+        origins 'localhost:3000'
+        resource '*', :headers => :any, :methods => [:get, :post, :put, :delete, :patch, :options]
+      end
+    end
+
   end
 end
