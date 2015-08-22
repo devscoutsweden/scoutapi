@@ -142,6 +142,8 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-rails (~> 4.0.0)
+  coffee-script (= 2.2.0)
+  coffee-script-source (= 1.8.0)
   google-id-token!
   jbuilder (~> 2.0)
   jquery-rails
