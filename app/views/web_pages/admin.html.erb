@@ -1,0 +1,39 @@
+<!--<p ng-bind="test.featuredCount"></p>-->
+
+<!--<p ng-bind="test.authorizationType"></p>-->
+
+<!--<p ng-bind="test.authorizationToken"></p>-->
+<!--<button ng-click="test.pingServer()">Ping</button>-->
+<!--<button ng-click="test.getProfile()">Profile</button>-->
+<!--<button ng-click="test.getCategories()">Show categories</button>-->
+<!--<p ng-bind="test.userName"></p>-->
+
+<div id="theView" ng-view>
+
+</div>
+
+<div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+<script>
+    function onSignIn(googleUser) {
+        // Useful data for your client-side scripts:
+        var profile = googleUser.getBasicProfile();
+//        console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+//        console.log("Name: " + profile.getName());
+//        console.log("Image URL: " + profile.getImageUrl());
+//        console.log("Email: " + profile.getEmail());
+
+        // The ID token you need to pass to your backend:
+        var id_token = googleUser.getAuthResponse().id_token;
+
+        var s = angular.injector(['scoutapi']).get("authService");
+        window.googleIdToken = id_token;
+        s.onIdentityProviderResponse('google', id_token);
+
+//        var scope = angular.element(document.getElementById("theView")).scope();
+//        if (scope) {
+//            scope.controller.onIdentityProviderResponse('google', id_token);
+//            scope.$apply();
+//        }
+    }
+    ;
+</script>

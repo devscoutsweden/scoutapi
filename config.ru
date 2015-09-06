@@ -10,5 +10,6 @@ use Rack::Cors do
 end
 
 use Rack::Static, :urls => ["/media-file-cache"], :root => 'tmp'
+use Rack::Static, :urls => ["/templates"], :root => 'app/assets'
 
 run Rails.application

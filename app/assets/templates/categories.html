@@ -1,0 +1,20 @@
+<div id="breadcrumbs"><a href="#/">Home</a> &gt; Categories</div>
+<p><a href="#/categories/create">Add...</a></p>
+<table>
+    <thead>
+    <tr>
+        <td>Name</td>
+        <td>Group</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="c in categories">
+        <td><a href="#/categories/{{c.id}}">{{c.name}}</a></td>
+        <td>{{c.group}}</td>
+    </tbody>
+</table>
+<!--
+<ul class="objects">
+    <li ng-repeat="c in categories"><a href="#/categories/{{c.id}}">{{c.name}} ({{c.group}})</a></li>
+</ul>
+-->

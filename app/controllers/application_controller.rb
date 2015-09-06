@@ -7,6 +7,31 @@ class ApplicationController < ActionController::Base
 
   after_action :verify_authorized # Make sure that all controller actions invoke either authorize or skip_authorization.
 
+  # CORS support thanks to https://gist.github.com/dhoelzgen/cd7126b8652229d32eb4 and http://blog.rudylee.com/2013/10/29/rails-4-cors/
+  # Possible alternate solution: http://stackoverflow.com/questions/29751115/how-to-enable-cors-in-rails-4-app
+
+  skip_before_filter :verify_authenticity_token
+  before_filter :cors_preflight_check
+  after_filter :cors_set_access_control_headers
+
+  def cors_set_access_control_headers
+    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS, PATCH'
+    headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, Token, X-ScoutAPI-APIKey'
+    headers['Access-Control-Max-Age'] = "1728000"
+  end
+
+  def cors_preflight_check
+    if request.method == 'OPTIONS'
+      headers['Access-Control-Allow-Origin'] = '*'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS, PATCH'
+      headers['Access-Control-Allow-Headers'] = 'X-Requested-With, X-Prototype-Version, Authorization, Token, X-ScoutAPI-APIKey'
+      headers['Access-Control-Max-Age'] = '1728000'
+
+      render :text => '', :content_type => 'text/plain'
+    end
+  end
+
   rescue_from ActiveRecord::RecordNotUnique, :with => :error_record_not_unique
   rescue_from ActiveRecord::RecordNotFound, :with => :error_record_not_found
   rescue_from ActiveRecord::RecordInvalid, :with => :error_record_has_invalid_data

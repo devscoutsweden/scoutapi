@@ -1,11 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
   <title>Aktivitetsbanken @ /dev/scout</title>
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= csrf_meta_tags %>
+
+    <meta name="google-signin-scope" content="profile">
+    <meta name="google-signin-client_id"
+          content="551713736410-q55omfobgs9j8ia4ae3r7sbi20vcvt49.apps.googleusercontent.com">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular-resource.min.js"></script>
+
+    <%= javascript_include_tag 'scoutapi' %>
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
-<body>
+<body ng-app="scoutapi">
+<!--<body ng-app="scoutapi" ng-controller="ScoutAPIController as test">-->
 
 <%= yield %>
 

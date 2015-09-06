@@ -33,3 +33,28 @@ p {
   margin: 0 0 0.5em 0;
   line-height: 120%;
 }
+a {
+  color: blue;
+  text-decoration: underline;
+}
+#theView {
+  margin: 1em;
+  padding: 0;
+}
+.form-item {
+
+}
+.form-item label {
+  display: block;
+}
+.form-item input {
+  display: block;
+}
+.objects {
+  padding: 0;
+  margin: 0;
+}
+.objects li {
+  list-style-type: none;
+  margin: 0.25em 0;
+}

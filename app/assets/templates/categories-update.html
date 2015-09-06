@@ -1,0 +1,5 @@
+<div id="breadcrumbs"><a href="#/">Home</a> &gt; <a href="#/categories">Categories</a> &gt; Edit {{category.name}}:</div>
+<form ng-submit="updateCategory()">
+    <div ng-include="'/templates/categories-form.html'"></div>
+    <p><a ng-click="deleteCategory()">Delete</a></p>
+</form>
